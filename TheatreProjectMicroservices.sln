@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{754D03CE-31C2-4987-9EB2-26638A5D4EC7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrontEnd", "FrontEnd", "{D674435B-E1B3-495D-8710-D59B19D226D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.WebApp", "TheatreProject.WebApp\TheatreProject.WebApp.csproj", "{E00A0256-F92E-4D8D-B7EC-A3982372EB97}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{1EA90917-ED8B-466B-92C3-121D61EB66CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.PerformanceAPI", "TheatreProject.PerformanceAPI\TheatreProject.PerformanceAPI.csproj", "{28EB04C7-2980-43B3-A3E1-454BA5BDD20C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E00A0256-F92E-4D8D-B7EC-A3982372EB97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E00A0256-F92E-4D8D-B7EC-A3982372EB97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E00A0256-F92E-4D8D-B7EC-A3982372EB97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E00A0256-F92E-4D8D-B7EC-A3982372EB97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28EB04C7-2980-43B3-A3E1-454BA5BDD20C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28EB04C7-2980-43B3-A3E1-454BA5BDD20C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28EB04C7-2980-43B3-A3E1-454BA5BDD20C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28EB04C7-2980-43B3-A3E1-454BA5BDD20C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D674435B-E1B3-495D-8710-D59B19D226D5} = {754D03CE-31C2-4987-9EB2-26638A5D4EC7}
+		{E00A0256-F92E-4D8D-B7EC-A3982372EB97} = {D674435B-E1B3-495D-8710-D59B19D226D5}
+		{1EA90917-ED8B-466B-92C3-121D61EB66CB} = {754D03CE-31C2-4987-9EB2-26638A5D4EC7}
+		{28EB04C7-2980-43B3-A3E1-454BA5BDD20C} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27B913A9-389E-47EC-BBFF-1E6BEDD1A9F8}
+	EndGlobalSection
+EndGlobal

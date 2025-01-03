@@ -1,0 +1,220 @@
+﻿@model PagedResponse<PerformanceDto>
+@{
+    ViewData["Title"] = "Search Performances";
+    var sortBy = Context.Request.Query["SortBy"].ToString();
+    var isDescendingStr = Context.Request.Query["IsDescending"].ToString();
+    var isDescending = !string.IsNullOrEmpty(isDescendingStr) && bool.TryParse(isDescendingStr, out var parsed) ? parsed : false;
+    var pageSize = Context.Request.Query["PageSize"].ToString();
+    var selectedCategory = Context.Request.Query["Category"].ToString();
+}
+
+<div class="container">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-search"></i> Search Performances</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" id="searchForm" class="mb-4">
+                <!-- Search and Category Section -->
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="SearchTerm">Search</label>
+                            <input type="text" name="SearchTerm" class="form-control" value="@Context.Request.Query["SearchTerm"]"
+                                   placeholder="Search by name or description...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="Category">Category</label>
+                            <select name="Category" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (TheatreCategory category in Enum.GetValues(typeof(TheatreCategory)))
+                                {
+                                var value = ((int)category).ToString();
+                                if (value == selectedCategory)
+                                {
+                                <option value="@value" selected>@category</option>
+                                }
+                                else
+                                {
+                                <option value="@value">@category</option>
+                                }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date Range Section -->
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="StartDate">Start Date</label>
+                            <input type="date" name="StartDate" class="form-control" value="@Context.Request.Query["StartDate"]">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="EndDate">End Date</label>
+                            <input type="date" name="EndDate" class="form-control" value="@Context.Request.Query["EndDate"]">
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-group">
+                            <label class="d-block">&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sort and Filter Section -->
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="SortBy">Sort By</label>
+                            <select name="SortBy" class="form-select">
+                                @if (sortBy == "price")
+                                {
+                                <option value="date">Date</option>
+                                <option value="price" selected>Price</option>
+                                }
+                                else
+                                {
+                                <option value="date" selected>Date</option>
+                                <option value="price">Price</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="IsDescending">Order</label>
+                            <select name="IsDescending" class="form-select">
+                                <option value="false" selected="@(!isDescending)">Ascending</option>
+                                <option value="true" selected="@(isDescending)">Descending</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Page Size Section -->
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="PageSize">Items per page</label>
+                            <select name="PageSize" class="form-select">
+                                @foreach (var size in new[] { "6", "12", "24" })
+                                {
+                                if (size == pageSize)
+                                {
+                                <option value="@size" selected>@size</option>
+                                }
+                                else
+                                {
+                                <option value="@size">@size</option>
+                                }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Clear Filters -->
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="d-block">&nbsp;</label>
+                            <a href="@Url.Action("Search")" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> Clear Filters
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+
+
+            @if (Model?.Data == null || !Model.Data.Any())
+            {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No performances found matching your criteria.
+            </div>
+            }
+            else
+            {
+            <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+                @foreach (var item in Model.Data)
+                {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@item.Name</h5>
+                            <p class="card-text text-muted">@item.TheatreName - @item.City</p>
+                            <p class="card-text">@item.Description.Substring(0, Math.Min(100, item.Description.Length))...</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">@item.Category</span>
+                                <small class="text-muted">@item.ShowDateTime.ToString("MMM dd, yyyy")</small>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                                <span class="text-success fw-bold">@item.BasePrice.ToString("C")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+
+            <nav aria-label="Page navigation" class="mt-4">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <p class="mb-0">
+                            Showing @(((Model.PageNumber - 1) * Model.PageSize) + 1) to
+                            @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords))
+                            of @Model.TotalRecords results
+                        </p>
+                    </div>
+                    <div class="col">
+                        <ul class="pagination justify-content-end mb-0">
+                            @if (Model.HasPrevious)
+                            {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Search", new { pageNumber = Model.PageNumber - 1 })">
+                                    Previous
+                                </a>
+                            </li>
+                            }
+                            @foreach (var pageNumber in Model.GetPaginationRange())
+                            {
+                            <li class="page-item @(pageNumber == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Search", new { pageNumber })">@pageNumber</a>
+                            </li>
+                            }
+                            @if (Model.HasNext)
+                            {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Search", new { pageNumber = Model.PageNumber + 1 })">
+                                    Next
+                                </a>
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(document).ready(function() {
+        $('#searchForm select').change(function() {
+            $('#searchForm').submit();
+        });
+    });
+</script>
+}
