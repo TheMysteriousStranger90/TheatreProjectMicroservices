@@ -1,4 +1,5 @@
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TheatreProject.PerformanceAPI.Data;
@@ -15,10 +16,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
-builder.Services.AddFluentValidation(fv => 
-{
-    fv.RegisterValidatorsFromAssemblyContaining<PerformanceDtoValidator>();
-});
+builder.Services.AddFluentValidation(fv => { fv.RegisterValidatorsFromAssemblyContaining<PerformanceDtoValidator>(); });
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -42,29 +40,27 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "TheatreProject.Services.PerformanceAPI", Version = "v1" });
     c.EnableAnnotations();
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    c.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme, securityScheme: new OpenApiSecurityScheme
     {
-        Description = @"Enter 'Bearer' [space] and your token",
         Name = "Authorization",
+        Description = "Enter the Bearer Authorization string as following: `Bearer Generated-JWT-Token`",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
             new OpenApiSecurityScheme
             {
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Scheme = "oauth2",
-                Name = "Bearer",
-                In = ParameterLocation.Header
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                }
             },
-            new List<string>()
+            new string[] { }
         }
     });
 });
@@ -82,7 +78,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
+
     app.MapGet("/", context =>
     {
         context.Response.Redirect("/swagger/index.html");

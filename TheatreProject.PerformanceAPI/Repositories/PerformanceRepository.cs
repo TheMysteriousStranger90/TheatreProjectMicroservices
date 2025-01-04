@@ -21,14 +21,18 @@ public class PerformanceRepository : IPerformanceRepository
     {
         Performance performance = _mapper.Map<PerformanceDto, Performance>(performanceDto);
 
-        if (performance.Id != Guid.Empty)
+        if (performance.Id == Guid.Empty)
         {
-            _context.Performances.Update(performance);
+            performance.Id = Guid.NewGuid();
+            performance.CreatedDate = DateTime.UtcNow;
+            performance.Status = PerformanceStatus.Scheduled;
+            performance.AvailableSeats = performance.Capacity;
+            await _context.Performances.AddAsync(performance);
         }
         else
         {
-            performance.Id = Guid.NewGuid();
-            await _context.Performances.AddAsync(performance);
+            performance.UpdatedDate = DateTime.UtcNow;
+            _context.Performances.Update(performance);
         }
 
         await _context.SaveChangesAsync();

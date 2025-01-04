@@ -53,13 +53,13 @@ public class PerformanceController : Controller
         return View(new List<PerformanceDto>());
     }
 
-    [Authorize(Roles = "Administrator")]
+    //[Authorize(Roles = "Administrator")]
     public IActionResult Create()
     {
         return View();
     }
 
-    [Authorize(Roles = "Administrator")]
+    //[Authorize(Roles = "Administrator")]
     [HttpPost]
     public async Task<IActionResult> Create(PerformanceDto model)
     {
