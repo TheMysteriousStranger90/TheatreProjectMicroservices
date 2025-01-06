@@ -18,13 +18,8 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 builder.Services.AddFluentValidation(fv => { fv.RegisterValidatorsFromAssemblyContaining<PerformanceDtoValidator>(); });
 
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "TheatreProject_";
-});
-
-builder.Services.AddScoped<ICacheService, RedisCacheService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
 
 builder.Services.AddScoped<IPerformanceRepository, PerformanceRepository>();
 
@@ -32,38 +27,7 @@ builder.Services.AddScoped<ValidationFilter>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-builder.AddAppAuthentication();
-builder.Services.AddAuthorization();
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TheatreProject.Services.PerformanceAPI", Version = "v1" });
-    c.EnableAnnotations();
-    c.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme, securityScheme: new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Description = "Enter the Bearer Authorization string as following: `Bearer Generated-JWT-Token`",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme
-                }
-            },
-            new string[] { }
-        }
-    });
-});
+builder.Services.AddJwtBearerServices();
 
 var app = builder.Build();
 

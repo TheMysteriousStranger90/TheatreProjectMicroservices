@@ -4,5 +4,6 @@ namespace TheatreProject.WebApp.Services.Interfaces;
 
 public interface IBaseService
 {
-    Task<ResponseDto?> SendAsync(RequestDto requestDto, bool withBearer = true);
+    ResponseDto responseModel { get; set; }
+    Task<T> SendAsync<T>(RequestDto requestDto);
 }

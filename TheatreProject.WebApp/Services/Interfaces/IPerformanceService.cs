@@ -2,16 +2,16 @@
 
 namespace TheatreProject.WebApp.Services.Interfaces;
 
-public interface IPerformanceService
+public interface IPerformanceService : IBaseService
 {
-    Task<ResponseDto?> GetPerformancesAsync();
-    Task<ResponseDto?> GetPerformanceByIdAsync(Guid id);
-    Task<ResponseDto?> GetUpcomingPerformancesAsync();
-    Task<ResponseDto?> CreatePerformanceAsync(PerformanceDto performanceDto);
-    Task<ResponseDto?> UpdatePerformanceAsync(PerformanceDto performanceDto);
-    Task<ResponseDto?> DeletePerformanceAsync(Guid id);
-    Task<ResponseDto?> GetFilteredPerformancesAsync(PerformanceQueryParameters parameters);
-    Task<ResponseDto?> GetPerformanceStatisticsAsync(Guid id);
-    Task<ResponseDto?> UpdatePerformanceStatusAsync(Guid id, PerformanceStatus status);
-    Task<ResponseDto?> CheckIfSoldOutAsync(Guid id);
+    Task<T> GetPerformancesAsync<T>(string token);
+    Task<T> GetPerformanceByIdAsync<T>(Guid id, string token);
+    Task<T> GetUpcomingPerformancesAsync<T>(string token);
+    Task<T> CreatePerformanceAsync<T>(PerformanceDto performanceDto, string token);
+    Task<T> UpdatePerformanceAsync<T>(PerformanceDto performanceDto, string token);
+    Task<T> DeletePerformanceAsync<T>(Guid id, string token);
+    Task<T> GetFilteredPerformancesAsync<T>(PerformanceQueryParameters parameters, string token);
+    Task<T> GetPerformanceStatisticsAsync<T>(Guid id, string token);
+    Task<T> UpdatePerformanceStatusAsync<T>(Guid id, PerformanceStatus status, string token);
+    Task<T> CheckIfSoldOutAsync<T>(Guid id, string token);
 }

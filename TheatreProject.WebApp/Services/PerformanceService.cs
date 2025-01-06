@@ -1,91 +1,90 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
+using TheatreProject.WebApp.Constants;
 using TheatreProject.WebApp.Models;
 using TheatreProject.WebApp.Services.Interfaces;
 
 namespace TheatreProject.WebApp.Services;
 
-public class PerformanceService : IPerformanceService
+public class PerformanceService : BaseService, IPerformanceService
 {
-    private readonly IBaseService _baseService;
-    private readonly string _performanceApiBase;
+    private readonly IHttpClientFactory _clientFactory;
 
-    public PerformanceService(IBaseService baseService, IConfiguration configuration)
+    public PerformanceService(IHttpClientFactory clientFactory) : base(clientFactory)
     {
-        _baseService = baseService;
-        _performanceApiBase = configuration.GetValue<string>("ServiceUrls:PerformanceAPI");
+        _clientFactory = clientFactory;
     }
 
-    public async Task<ResponseDto?> GetPerformancesAsync()
+    public async Task<T> GetPerformancesAsync<T>(string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{_performanceApiBase}/api/performances"
+            Url = Const.PerformanceAPIBase + "/api/performances",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> GetPerformanceByIdAsync(Guid id)
+    public async Task<T> GetPerformanceByIdAsync<T>(Guid id, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{_performanceApiBase}/api/performances/{id}"
+            Url = Const.PerformanceAPIBase + "/api/performances/{id}",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> GetUpcomingPerformancesAsync()
+    public async Task<T> GetUpcomingPerformancesAsync<T>(string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{_performanceApiBase}/api/performances/upcoming"
+            Url = Const.PerformanceAPIBase + "/api/performances/upcoming",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> CreatePerformanceAsync(PerformanceDto performanceDto)
+    public async Task<T> CreatePerformanceAsync<T>(PerformanceDto performanceDto, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.POST,
             Data = performanceDto,
-            Url = $"{_performanceApiBase}/api/performances",
-            ContentType = ContentType.MultipartFormData
+            Url = Const.PerformanceAPIBase + "/api/performances",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> UpdatePerformanceAsync(PerformanceDto performanceDto)
+    public async Task<T> UpdatePerformanceAsync<T>(PerformanceDto performanceDto, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.PUT,
             Data = performanceDto,
-            Url = $"{_performanceApiBase}/api/performances",
-            ContentType = ContentType.MultipartFormData
+            Url = Const.PerformanceAPIBase + "/api/performances",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> DeletePerformanceAsync(Guid id)
+    public async Task<T> DeletePerformanceAsync<T>(Guid id, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.DELETE,
-            Url = $"{_performanceApiBase}/api/performances/{id}"
+            Url = Const.PerformanceAPIBase + "/api/performances/{id}",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> GetFilteredPerformancesAsync(PerformanceQueryParameters parameters)
+    public async Task<T> GetFilteredPerformancesAsync<T>(PerformanceQueryParameters parameters, string token)
     {
         var query = new Dictionary<string, string>();
-    
         if (!string.IsNullOrEmpty(parameters.SearchTerm))
             query.Add("SearchTerm", parameters.SearchTerm);
-    
         if (parameters.Category.HasValue)
             query.Add("Category", parameters.Category.ToString());
-    
         if (parameters.StartDate.HasValue)
             query.Add("StartDate", parameters.StartDate.Value.ToString("o"));
-    
         if (parameters.EndDate.HasValue)
             query.Add("EndDate", parameters.EndDate.Value.ToString("o"));
     
@@ -94,41 +93,44 @@ public class PerformanceService : IPerformanceService
         query.Add("SortBy", parameters.SortBy ?? "date");
         query.Add("IsDescending", parameters.IsDescending.ToString());
 
-        var queryString = new QueryBuilder(query).ToString();
+        var queryString = new QueryBuilder(query).ToQueryString().Value;
 
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{_performanceApiBase}/api/performances/search{queryString}"
+            Url = $"{Const.PerformanceAPIBase}/api/performances/search{queryString}",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> GetPerformanceStatisticsAsync(Guid id)
+    public async Task<T> GetPerformanceStatisticsAsync<T>(Guid id, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{_performanceApiBase}/api/performances/{id}/statistics"
+            Url = Const.PerformanceAPIBase + "/api/performances/{id}/statistics",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> UpdatePerformanceStatusAsync(Guid id, PerformanceStatus status)
+    public async Task<T> UpdatePerformanceStatusAsync<T>(Guid id, PerformanceStatus status, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.PUT,
             Data = status,
-            Url = $"{_performanceApiBase}/api/performances/{id}/status",
-            ContentType = ContentType.MultipartFormData
+            Url = Const.PerformanceAPIBase + "/api/performances/{id}/status",
+            AccessToken = token
         });
     }
 
-    public async Task<ResponseDto?> CheckIfSoldOutAsync(Guid id)
+    public async Task<T> CheckIfSoldOutAsync<T>(Guid id, string token)
     {
-        return await _baseService.SendAsync(new RequestDto()
+        return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{_performanceApiBase}/api/performances/{id}/sold-out"
+            Url = Const.PerformanceAPIBase + "/api/performances/{id}/sold-out",
+            AccessToken = token
         });
     }
 }

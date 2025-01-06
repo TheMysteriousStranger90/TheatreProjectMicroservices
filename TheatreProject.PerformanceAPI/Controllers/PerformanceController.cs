@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using TheatreProject.PerformanceAPI.Models;
 using TheatreProject.PerformanceAPI.Models.Dto;
 using TheatreProject.PerformanceAPI.Repositories;
@@ -13,19 +14,25 @@ namespace TheatreProject.PerformanceAPI.Controllers;
 [ServiceFilter(typeof(ValidationFilter))]
 public class PerformanceController : ControllerBase
 {
-    private ResponseDto _response;
+    private const string PerformancesCacheKey = "Performances";
+    private static readonly SemaphoreSlim semaphore = new(1, 1);
+
     private readonly IPerformanceRepository _repository;
-    private readonly ICacheService _cacheService;
     private readonly ILogger<PerformanceController> _logger;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ICacheKeyService _cacheKeyService;
+    private ResponseDto _response;
 
     public PerformanceController(
         IPerformanceRepository repository,
-        ICacheService cacheService,
-        ILogger<PerformanceController> logger)
+        ILogger<PerformanceController> logger,
+        IMemoryCache memoryCache,
+        ICacheKeyService cacheKeyService)
     {
         _repository = repository;
-        _cacheService = cacheService;
         _logger = logger;
+        _memoryCache = memoryCache;
+        _cacheKeyService = cacheKeyService;
         _response = new ResponseDto();
     }
 
@@ -183,17 +190,32 @@ public class PerformanceController : ControllerBase
         {
             parameters ??= new PerformanceQueryParameters();
             _logger.LogInformation("Searching performances with parameters: {@Parameters}", parameters);
-        
-            var cacheKey = $"performances_filtered_{parameters.GetHashCode()}";
-            var performances = await _cacheService.GetOrSetAsync(cacheKey,
-                async () =>
+
+            string cacheKey = $"{PerformancesCacheKey}_filtered_{parameters.GetHashCode()}";
+
+            if (!_memoryCache.TryGetValue(cacheKey, out PagedResponse<PerformanceDto> performances))
+            {
+                try
                 {
-                    _logger.LogDebug("Cache miss for filtered performances");
-                    return await _repository.GetFilteredPerformances(parameters);
-                },
-                TimeSpan.FromMinutes(5));
-            
-            _logger.LogInformation("Retrieved {Count} filtered performances", performances.Data.Count());
+                    await semaphore.WaitAsync();
+                    if (!_memoryCache.TryGetValue(cacheKey, out performances))
+                    {
+                        performances = await _repository.GetFilteredPerformances(parameters);
+
+                        var cacheEntryOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+
+                        _memoryCache.Set(cacheKey, performances, cacheEntryOptions);
+                        _cacheKeyService.AddKey(cacheKey);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
+
             _response.Result = performances;
         }
         catch (Exception ex)
@@ -212,14 +234,31 @@ public class PerformanceController : ControllerBase
         try
         {
             _logger.LogInformation("Getting statistics for performance ID: {Id}", id);
-            var cacheKey = $"performance_stats_{id}";
-            var statistics = await _cacheService.GetOrSetAsync(cacheKey,
-                async () =>
+            var cacheKey = $"{PerformancesCacheKey}_stats_{id}";
+
+            if (!_memoryCache.TryGetValue(cacheKey, out var statistics))
+            {
+                try
                 {
-                    _logger.LogInformation("Cache miss for statistics, fetching from database");
-                    return await _repository.GetPerformanceStatistics(id);
-                },
-                TimeSpan.FromMinutes(5));
+                    await semaphore.WaitAsync();
+                    if (!_memoryCache.TryGetValue(cacheKey, out statistics))
+                    {
+                        _logger.LogInformation("Cache miss for statistics, fetching from database");
+                        statistics = await _repository.GetPerformanceStatistics(id);
+                    
+                        var cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+
+                        _memoryCache.Set(cacheKey, statistics, cacheOptions);
+                        _cacheKeyService.AddKey(cacheKey);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
 
             _response.Result = statistics;
             _logger.LogInformation("Successfully retrieved statistics for performance ID: {Id}", id);
@@ -245,7 +284,9 @@ public class PerformanceController : ControllerBase
             if (result)
             {
                 _logger.LogDebug("Removing cached statistics for performance {Id}", id);
-                await _cacheService.RemoveAsync($"performance_stats_{id}");
+                var cacheKey = $"{PerformancesCacheKey}_stats_{id}";
+                _memoryCache.Remove(cacheKey);
+                _cacheKeyService.RemoveKey(cacheKey);
                 _logger.LogInformation("Successfully updated performance status");
             }
             else
@@ -270,10 +311,30 @@ public class PerformanceController : ControllerBase
     {
         try
         {
-            var cacheKey = $"performance_soldout_{id}";
-            var isSoldOut = await _cacheService.GetOrSetAsync(cacheKey,
-                async () => await _repository.IsPerformanceSoldOut(id),
-                TimeSpan.FromMinutes(1));
+            var cacheKey = $"{PerformancesCacheKey}_soldout_{id}";
+
+            if (!_memoryCache.TryGetValue(cacheKey, out bool isSoldOut))
+            {
+                try
+                {
+                    await semaphore.WaitAsync();
+                    if (!_memoryCache.TryGetValue(cacheKey, out isSoldOut))
+                    {
+                        isSoldOut = await _repository.IsPerformanceSoldOut(id);
+                    
+                        var cacheOptions = new MemoryCacheEntryOptions()
+                            .SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
+
+                        _memoryCache.Set(cacheKey, isSoldOut, cacheOptions);
+                        _cacheKeyService.AddKey(cacheKey);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }
+
             _response.Result = isSoldOut;
         }
         catch (Exception ex)

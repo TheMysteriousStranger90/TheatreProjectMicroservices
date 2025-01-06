@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using TheatreProject.WebApp.Models;
@@ -9,81 +10,47 @@ namespace TheatreProject.WebApp.Services;
 public class BaseService : IBaseService
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ITokenProvider _tokenProvider;
+    public ResponseDto responseModel { get; set; }
 
-    public BaseService(IHttpClientFactory httpClientFactory, ITokenProvider tokenProvider)
+    public BaseService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
-        _tokenProvider = tokenProvider;
+        this.responseModel = new ResponseDto();
     }
 
-    public async Task<ResponseDto?> SendAsync(RequestDto requestDto, bool withBearer = true)
+    public async Task<T> SendAsync<T>(RequestDto requestDto)
     {
         try
         {
             HttpClient client = _httpClientFactory.CreateClient("TheatreProjectAPI");
-            HttpRequestMessage message = new();
-            if (requestDto.ContentType == ContentType.MultipartFormData)
-            {
-                message.Headers.Add("Accept", "*/*");
-            }
-            else
-            {
-                message.Headers.Add("Accept", "application/json");
-            }
-            
-            if (withBearer)
-            {
-                var token = _tokenProvider.GetToken();
-                message.Headers.Add("Authorization", $"Bearer {token}");
-            }
-
+            HttpRequestMessage message = new HttpRequestMessage();
+            message.Headers.Add("Accept", "application/json");
             message.RequestUri = new Uri(requestDto.Url);
-
-            if (requestDto.ContentType == ContentType.MultipartFormData)
-            {
-                var content = new MultipartFormDataContent();
-
-                foreach (var prop in requestDto.Data.GetType().GetProperties())
-                {
-                    var value = prop.GetValue(requestDto.Data);
-                    if (value is FormFile)
-                    {
-                        var file = (FormFile)value;
-                        if (file != null)
-                        {
-                            content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
-                        }
-                    }
-                    else
-                    {
-                        content.Add(new StringContent(value == null ? "" : value.ToString()), prop.Name);
-                    }
-                }
-
-                message.Content = content;
-            }
-            else
-            {
-                if (requestDto.Data != null)
-                {
-                    message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8,
-                        "application/json");
-                }
-            }
+            client.DefaultRequestHeaders.Clear();
             
-            HttpResponseMessage? apiResponse = null;
+            if (requestDto.Data != null)
+            {
+                var tmp = JsonConvert.SerializeObject(requestDto.Data);
+                message.Content = new StringContent(tmp, Encoding.UTF8, "application/json");
+            }
 
+            if (!string.IsNullOrEmpty(requestDto.AccessToken))
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", requestDto.AccessToken);
+            }
+
+            HttpResponseMessage apiResponse = null;
             switch (requestDto.ApiType)
             {
                 case ApiType.POST:
                     message.Method = HttpMethod.Post;
                     break;
-                case ApiType.DELETE:
-                    message.Method = HttpMethod.Delete;
-                    break;
                 case ApiType.PUT:
                     message.Method = HttpMethod.Put;
+                    break;
+                case ApiType.DELETE:
+                    message.Method = HttpMethod.Delete;
                     break;
                 default:
                     message.Method = HttpMethod.Get;
@@ -92,30 +59,26 @@ public class BaseService : IBaseService
 
             apiResponse = await client.SendAsync(message);
 
-            switch (apiResponse.StatusCode)
-            {
-                case HttpStatusCode.NotFound:
-                    return new() { IsSuccess = false, Message = "Not Found" };
-                case HttpStatusCode.Forbidden:
-                    return new() { IsSuccess = false, Message = "Access Denied" };
-                case HttpStatusCode.Unauthorized:
-                    return new() { IsSuccess = false, Message = "Unauthorized" };
-                case HttpStatusCode.InternalServerError:
-                    return new() { IsSuccess = false, Message = "Internal Server Error" };
-                default:
-                    var apiContent = await apiResponse.Content.ReadAsStringAsync();
-                    var apiResponseDto = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-                    return apiResponseDto;
-            }
+            var apiContent = await apiResponse.Content.ReadAsStringAsync();
+            var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);
+            return apiResponseDto;
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
             var dto = new ResponseDto
             {
-                Message = ex.Message.ToString(),
+                DisplayMessage = "Error",
+                ErrorMessages = new List<string> { Convert.ToString(e.Message) },
                 IsSuccess = false
             };
-            return dto;
+            var res = JsonConvert.SerializeObject(dto);
+            var apiResponseDto = JsonConvert.DeserializeObject<T>(res);
+            return apiResponseDto;
         }
+    }
+
+    public void Dispose()
+    {
+        GC.SuppressFinalize(true);
     }
 }

@@ -3,6 +3,6 @@
 public interface ITokenProvider
 {
     void SetToken(string token);
-    string? GetToken();
+    Task<string> GetTokenAsync();
     void ClearToken();
 }
