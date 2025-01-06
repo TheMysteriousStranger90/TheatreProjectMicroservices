@@ -8,234 +8,325 @@
     var selectedCategory = Context.Request.Query["Category"].ToString();
 }
 
-<div class="container">
+<div class="container-fluid py-3">
     @if (User.IsInRole("Administrator"))
     {
-    <div class="mb-4">
-        <a asp-action="Create" class="btn btn-success">
-            <i class="fas fa-plus"></i> Create New Performance
+    <div class="mb-3">
+        <a asp-action="Create" class="btn btn-danger shadow-sm">
+            <i class="fas fa-plus-circle"></i> Create New Performance
         </a>
     </div>
     }
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0"><i class="fas fa-search"></i> Search Performances</h4>
-        </div>
-        <div class="card-body">
-            <form method="get" id="searchForm" class="mb-4">
-                <!-- Search and Category Section -->
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="SearchTerm">Search</label>
-                            <input type="text" name="SearchTerm" class="form-control" value="@Context.Request.Query["SearchTerm"]"
-                                   placeholder="Search by name or description...">
-                        </div>
+</div>
+
+<div class="card shadow-lg border-0 rounded-3 mb-4">
+    <div class="card-header bg-dark text-white py-3">
+        <h4 class="mb-0">
+            <i class="fas fa-search"></i> Search Performances
+            <small class="float-end">
+                <i class="fas fa-filter"></i> Found: @Model?.TotalRecords performances
+            </small>
+        </h4>
+    </div>
+    <div class="card-body">
+        <form method="get" id="searchForm" class="mb-4">
+            <!-- Enhanced Search Section -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" name="SearchTerm" class="form-control" id="searchTerm"
+                               value="@Context.Request.Query["SearchTerm"]" placeholder="Search...">
+                        <label for="searchTerm">Search performances</label>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="Category">Category</label>
-                            <select name="Category" class="form-select">
-                                <option value="">All Categories</option>
-                                @foreach (TheatreCategory category in Enum.GetValues(typeof(TheatreCategory)))
-                                {
+                </div>
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <select name="Category" class="form-select" id="category">
+                            <option value="">All Categories</option>
+                            @foreach (TheatreCategory category in Enum.GetValues(typeof(TheatreCategory)))
+                            {
                                 var value = ((int)category).ToString();
-                                if (value == selectedCategory)
-                                {
-                                <option value="@value" selected>@category</option>
-                                }
-                                else
-                                {
-                                <option value="@value">@category</option>
-                                }
-                                }
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Date Range Section -->
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="StartDate">Start Date</label>
-                            <input type="date" name="StartDate" class="form-control" value="@Context.Request.Query["StartDate"]">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="EndDate">End Date</label>
-                            <input type="date" name="EndDate" class="form-control" value="@Context.Request.Query["EndDate"]">
-                        </div>
-                    </div>
-                    <div class="col-md-1">
-                        <div class="form-group">
-                            <label class="d-block">&nbsp;</label>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                                <option value="@value" selected="@(value == selectedCategory)">
+                                    @category
+                                </option>
+                            }
+                        </select>
+                        <label for="category">Category</label>
                     </div>
                 </div>
 
-                <!-- Sort and Filter Section -->
-                <div class="row mt-3">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="SortBy">Sort By</label>
-                            <select name="SortBy" class="form-select">
-                                @if (sortBy == "price")
-                                {
-                                <option value="date">Date</option>
-                                <option value="price" selected>Price</option>
-                                }
-                                else
-                                {
-                                <option value="date" selected>Date</option>
-                                <option value="price">Price</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="IsDescending">Order</label>
-                            <select name="IsDescending" class="form-select">
-                                <option value="false" selected="@(!isDescending)">Ascending</option>
-                                <option value="true" selected="@(isDescending)">Descending</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Page Size Section -->
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="PageSize">Items per page</label>
-                            <select name="PageSize" class="form-select">
-                                @foreach (var size in new[] { "6", "12", "24" })
-                                {
-                                if (size == pageSize)
-                                {
-                                <option value="@size" selected>@size</option>
-                                }
-                                else
-                                {
-                                <option value="@size">@size</option>
-                                }
-                                }
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Clear Filters -->
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="d-block">&nbsp;</label>
-                            <a href="@Url.Action("Search")" class="btn btn-secondary">
-                                <i class="fas fa-undo"></i> Clear Filters
-                            </a>
-                        </div>
+                <!-- Date Range with Datepicker -->
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <input type="date" name="StartDate" class="form-control datepicker"
+                               id="startDate" value="@Context.Request.Query["StartDate"]">
+                        <label for="startDate">Start Date</label>
                     </div>
                 </div>
-            </form>
-
-
-
-            @if (Model?.Data == null || !Model.Data.Any())
-            {
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> No performances found matching your criteria.
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <input type="date" name="EndDate" class="form-control datepicker"
+                               id="endDate" value="@Context.Request.Query["EndDate"]">
+                        <label for="endDate">End Date</label>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-dark h-100 w-100" id="searchButton">
+                        <i class="fas fa-search"></i>
+                        <span class="d-none d-lg-inline ms-1">Search</span>
+                    </button>
+                </div>
             </div>
-            }
-            else
-            {
-            <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+
+            <!-- Advanced Filters Section -->
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <select name="SortBy" class="form-select">
+                            <option value="date" selected="@(sortBy != "price")">Date</option>
+                            <option value="price" selected="@(sortBy == "price")">Price</option>
+                        </select>
+                        <label>Sort By</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <select name="IsDescending" class="form-select">
+                            <option value="false" selected="@(!isDescending)">Ascending</option>
+                            <option value="true" selected="@(isDescending)">Descending</option>
+                        </select>
+                        <label>Order</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <select name="PageSize" class="form-select">
+                            @foreach (var size in new[] { "6", "12", "24" })
+                            {
+                                <option value="@size" selected="@(size == pageSize)">@size</option>
+                            }
+                        </select>
+                        <label>Items per page</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <input type="number" name="MinPrice" class="form-control"
+                               value="@Context.Request.Query["MinPrice"]" placeholder="Min Price">
+                        <label>Min Price</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <input type="number" name="MaxPrice" class="form-control"
+                               value="@Context.Request.Query["MaxPrice"]" placeholder="Max Price">
+                        <label>Max Price</label>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <a href="@Url.Action("Search")" class="btn btn-secondary w-100" title="Clear all filters">
+                        <i class="fas fa-undo">
+                            <span class="d-none d-lg-inline ms-1">Clean</span>
+                        </i>
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Results Section -->
+        <div id="searchResults">
+        @if (Model?.Data == null || !Model.Data.Any())
+        {
+            <div class="alert alert-info fade show">
+                <i class="fas fa-info-circle me-2"></i>
+                No performances found matching your criteria.
+            </div>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
                 @foreach (var item in Model.Data)
                 {
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name">
-                        <div class="card-body">
-                            <h5 class="card-title">@item.Name</h5>
-                            <p class="card-text text-muted">@item.TheatreName - @item.City</p>
-                            <p class="card-text">@item.Description.Substring(0, Math.Min(100, item.Description.Length))...</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-primary">@item.Category</span>
-                                <small class="text-muted">@item.ShowDateTime.ToString("MMM dd, yyyy")</small>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-info-circle"></i> Details
-                                    </a>
-                                    @if (User.IsInRole("Administrator"))
-                                    {
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning mx-1">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Are you sure you want to delete this performance?')">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </a>
-                                    }
+                    <div class="col">
+                        <div class="card h-100 shadow-sm hover-shadow transition-all">
+                            <div class="position-relative">
+                                <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name"
+                                     style="height: 200px; object-fit: cover;">
+                                <div class="position-absolute top-0 end-0 p-2">
+                                    <span class="badge bg-primary rounded-pill">
+                                        <i class="fas fa-tag me-1"></i>@item.Category
+                                    </span>
                                 </div>
-                                <span class="text-success fw-bold">@item.BasePrice.ToString("C")</span>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title text-truncate">@item.Name</h5>
+                                <p class="card-text text-muted">
+                                    <i class="fas fa-theater-masks me-1"></i>@item.TheatreName
+                                    <br/>
+                                    <i class="fas fa-map-marker-alt me-1"></i>@item.City
+                                </p>
+                                <p class="card-text">
+                                    @item.Description.Substring(0, Math.Min(100, item.Description.Length))...
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-danger fw-bold fs-5">
+                                        @item.BasePrice.ToString("C")
+                                    </span>
+                                    <small class="text-muted">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        @item.ShowDateTime.ToString("MMM dd, yyyy")
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <a asp-action="Details" asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-info-circle"></i> Details
+                                        </a>
+                                        @if (User.IsInRole("Administrator"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    onclick="deletePerformance('@item.Id', '@item.Name')">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
                 }
             </div>
 
+            <!-- Enhanced Pagination -->
             <nav aria-label="Page navigation" class="mt-4">
                 <div class="row align-items-center">
-                    <div class="col">
-                        <p class="mb-0">
+                    <div class="col-md-6">
+                        <p class="mb-0 text-muted">
                             Showing @(((Model.PageNumber - 1) * Model.PageSize) + 1) to
                             @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords))
                             of @Model.TotalRecords results
                         </p>
                     </div>
-                    <div class="col">
-                        <ul class="pagination justify-content-end mb-0">
-                            @if (Model.HasPrevious)
-                            {
+                    <div class="col-md-6">
+                        <ul class="pagination pagination-sm justify-content-end mb-0">
+                        @if (Model.HasPrevious)
+                        {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Search", new { pageNumber = Model.PageNumber - 1 })">
-                                    Previous
+                                <a class="page-link" href="@Url.Action("Search", new { pageNumber = 1 })"
+                                   aria-label="First">
+                                    <i class="fas fa-angle-double-left"></i>
                                 </a>
                             </li>
-                            }
-                            @foreach (var pageNumber in Model.GetPaginationRange())
-                            {
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="@Url.Action("Search", new { pageNumber = Model.PageNumber - 1 })"
+                                   aria-label="Previous">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        }
+
+                        @foreach (var pageNumber in Model.GetPaginationRange())
+                        {
                             <li class="page-item @(pageNumber == Model.PageNumber ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Search", new { pageNumber })">@pageNumber</a>
-                            </li>
-                            }
-                            @if (Model.HasNext)
-                            {
-                            <li class="page-item">
-                                <a class="page-link" href="@Url.Action("Search", new { pageNumber = Model.PageNumber + 1 })">
-                                    Next
+                                <a class="page-link"
+                                   href="@Url.Action("Search", new { pageNumber = pageNumber, SearchTerm = Context.Request.Query["SearchTerm"].ToString(), Category = selectedCategory, StartDate = Context.Request.Query["StartDate"].ToString(), EndDate = Context.Request.Query["EndDate"].ToString(), SortBy = sortBy, IsDescending = isDescending, PageSize = pageSize })"
+                                   data-bs-toggle="tooltip"
+                                   title="Go to page @pageNumber">
+                                    @pageNumber
                                 </a>
                             </li>
-                            }
+                        }
                         </ul>
                     </div>
                 </div>
             </nav>
-            }
+        }
         </div>
     </div>
 </div>
 
 @section Scripts {
-<script>
-    $(document).ready(function() {
-        $('#searchForm select').change(function() {
-            $('#searchForm').submit();
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Auto-submit on select change
+            $('#searchForm select').change(function() {
+                showLoader();
+                $('#searchForm').submit();
+            });
+
+            // Show loading indicator
+            function showLoader() {
+                $('body').append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+            }
+
+            // Add loading state to search button
+            $('#searchForm').on('submit', function() {
+                showLoader();
+            });
+
+            // Add view toggle (grid/list)
+            $('.view-toggle').click(function(e) {
+                e.preventDefault();
+                $('.performance-cards').toggleClass('row-cols-md-3 row-cols-md-1');
+            });
+
+            // Infinite scroll
+            $(window).scroll(function() {
+                if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
+                    if(@Model.HasNext) {
+                        loadMoreResults();
+                    }
+                }
+            });
         });
-    });
-</script>
+    </script>
+
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .card {
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        }
+
+        .pagination .page-link {
+            transition: all 0.3s;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #000;
+            color: white;
+        }
+        
+    </style>
 }
