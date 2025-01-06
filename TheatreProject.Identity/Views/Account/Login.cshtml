@@ -1,54 +1,76 @@
 @model TheatreProject.Identity.MainModule.Account.LoginViewModel
 
-<div class="login-page">
-    <div class="lead">
-        <h1>Login</h1>
-        <p>Choose how to login</p>
+<div class="login-page py-5">
+    <div class="lead text-center mb-4">
+        <h1><i class="bi bi-box-arrow-in-right"></i> Login</h1>
+        <p class="text-muted">Welcome back! Please login to your account</p>
     </div>
 
     <partial name="_ValidationSummary" />
 
-    <div class="row">
-
+    <div class="row justify-content-center">
         @if (Model.EnableLocalLogin)
         {
-            <div class="col-sm-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Local Account</h2>
+            <div class="col-12 col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white">
+                        <h2 class="h5 mb-0"><i class="bi bi-person-circle"></i> Local Account</h2>
                     </div>
 
-                    <div class="card-body">
-                        <form asp-route="Login">
+                    <div class="card-body p-4">
+                        <form asp-route="Login" id="loginForm">
                             <input type="hidden" asp-for="ReturnUrl" />
 
-                            <div class="form-group mt-2">
-                                <label asp-for="Username"></label>
-                                <input class="form-control" placeholder="Username" asp-for="Username" autofocus>
+                            <div class="form-group mb-3">
+                                <label asp-for="Username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input class="form-control" placeholder="Enter your username" asp-for="Username" autofocus>
+                                </div>
+                                <span asp-validation-for="Username" class="text-danger small"></span>
                             </div>
-                            <div class="form-group mt-2">
-                                <label asp-for="Password"></label>
-                                <input type="password" class="form-control" placeholder="Password" asp-for="Password" autocomplete="off">
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                    <input type="password" class="form-control" placeholder="Enter your password" 
+                                           asp-for="Password" autocomplete="off">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
                             </div>
+
                             @if (Model.AllowRememberLogin)
                             {
-                                <div class="form-group">
+                                <div class="form-group mb-3">
                                     <div class="form-check">
-                                        <input class="form-check-input" asp-for="RememberLogin">
-                                        <label class="form-check-label" asp-for="RememberLogin">
-                                            Remember My Login
+                                        <input class="form-check-input" asp-for="RememberLogin" id="rememberMe">
+                                        <label class="form-check-label user-select-none" for="rememberMe">
+                                            <i class="bi bi-clock-history"></i> Remember Me
                                         </label>
                                     </div>
                                 </div>
                             }
-                            <div class="form-group mt-2">
-                                <button class="btn btn-primary" name="button" value="login">Login</button>
-                                <button class="btn btn-secondary" name="button" value="cancel">Cancel</button>
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-dark" type="submit" name="button" value="login" id="loginButton">
+                                    <i class="bi bi-box-arrow-in-right"></i> Login
+                                    <span class="spinner-border spinner-border-sm d-none" id="loginSpinner"></span>
+                                </button>
+                                <button class="btn btn-outline-secondary" name="button" value="cancel">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </button>
                             </div>
                         </form>
                     </div>
-                    <div class="card-footer">
-                        <a href="@Url.Action("Register",new {Model.ReturnUrl })">New User? Register</a>
+
+                    <div class="card-footer text-center">
+                        <a href="@Url.Action("Register",new {Model.ReturnUrl })" class="text-decoration-none text-dark">
+                            <i class="bi bi-person-plus"></i> New User? Register here
+                        </a>
                     </div>
                 </div>
             </div>
@@ -56,26 +78,25 @@
 
         @if (Model.VisibleExternalProviders.Any())
         {
-            <div class="col-sm-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h2>External Account</h2>
+            <div class="col-12 col-md-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h2 class="h5 mb-0"><i class="bi bi-globe"></i> External Account</h2>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-inline">
+                    <div class="card-body p-4">
+                        <div class="d-grid gap-2">
                             @foreach (var provider in Model.VisibleExternalProviders)
                             {
-                                <li class="list-inline-item">
-                                    <a class="btn btn-secondary"
-                                       asp-controller="External"
-                                       asp-action="Challenge"
-                                       asp-route-scheme="@provider.AuthenticationScheme"
-                                       asp-route-returnUrl="@Model.ReturnUrl">
-                                        @provider.DisplayName
-                                    </a>
-                                </li>
+                                <a class="btn btn-outline-dark"
+                                   asp-controller="External"
+                                   asp-action="Challenge"
+                                   asp-route-scheme="@provider.AuthenticationScheme"
+                                   asp-route-returnUrl="@Model.ReturnUrl">
+                                    <i class="bi bi-@(provider.AuthenticationScheme.ToLower())"></i> 
+                                    Continue with @provider.DisplayName
+                                </a>
                             }
-                        </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,10 +104,38 @@
 
         @if (!Model.EnableLocalLogin && !Model.VisibleExternalProviders.Any())
         {
-            <div class="alert alert-warning">
-                <strong>Invalid login request</strong>
-                There are no login schemes configured for this request.
+            <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Invalid login request</strong>
+                    <p class="mb-0">There are no login schemes configured for this request.</p>
+                </div>
             </div>
         }
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            $('#togglePassword').click(function() {
+                const password = $('[asp-for="Password"]');
+                const icon = $(this).find('i');
+                
+                if (password.attr('type') === 'password') {
+                    password.attr('type', 'text');
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    password.attr('type', 'password');
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            $('#loginForm').on('submit', function() {
+                $('#loginButton').prop('disabled', true);
+                $('#loginSpinner').removeClass('d-none');
+            });
+        });
+    </script>
+}

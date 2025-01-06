@@ -1,58 +1,140 @@
 ﻿@model TheatreProject.Identity.MainModule.Account.RegisterViewModel
 
-<div class="login-page">
-    <div class="lead">
-        <h1>Register</h1>
-        <p>Choose how to register</p>
+<div class="login-page py-5">
+    <div class="lead text-center mb-4">
+        <h1><i class="bi bi-person-plus"></i> Register</h1>
+        <p class="text-muted">Create your account to get started</p>
     </div>
 
     <partial name="_ValidationSummary" />
 
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Local Account Register</h2>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h2 class="h5 mb-0"><i class="bi bi-person-circle"></i> Create Account</h2>
                 </div>
 
                 <div class="card-body">
-                    <form asp-route="Login">
+                    <form asp-route="Register" method="post">
                         <input type="hidden" asp-for="ReturnUrl" />
 
-                        <div class="form-group mt-2">
-                            <label asp-for="Username"></label>
-                            <input class="form-control" placeholder="Username" asp-for="Username" autofocus>
+                        <div class="form-group mb-3">
+                            <label asp-for="Username" class="form-label">Username <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input class="form-control" placeholder="Enter username" asp-for="Username" required>
+                            </div>
+                            <span asp-validation-for="Username" class="text-danger small"></span>
                         </div>
-                        <div class="form-group mt-2">
-                            <label asp-for="Email"></label>
-                            <input class="form-control" placeholder="Email" asp-for="Email" autofocus>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input class="form-control" type="email" placeholder="Enter email" asp-for="Email" required>
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
-                        <div class="form-group mt-2">
-                            <label asp-for="FirstName"></label>
-                            <input class="form-control" placeholder="First name" asp-for="FirstName" autofocus>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="FirstName" class="form-label">First Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                        <input class="form-control" placeholder="Enter first name" asp-for="FirstName">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="LastName" class="form-label">Last Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                        <input class="form-control" placeholder="Enter last name" asp-for="LastName">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group mt-2">
-                            <label asp-for="LastName"></label>
-                            <input class="form-control" placeholder="Last name" asp-for="LastName" autofocus>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                <input type="password" class="form-control" placeholder="Enter password" asp-for="Password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                            <div class="form-text">
+                                Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character
+                            </div>
                         </div>
-                        <div class="form-group mt-2">
-                            <label asp-for="Password"></label>
-                            <input type="password" class="form-control" placeholder="Password" asp-for="Password" autocomplete="off">
+
+                        <div class="form-group mb-4">
+                            <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm password" required>
+                            </div>
+                            <span id="passwordMatch" class="text-danger small"></span>
                         </div>
-                        <div class="form-group mt-2">
-                            <label asp-for="RoleName"></label>
-                            <select asp-for="RoleName" class="form-control" asp-items="@(new SelectList(ViewBag.message))"></select>
-                        </div>
-                        <div class="form-group mt-2">
-                            <button class="btn btn-primary" name="button" value="Register">Register</button>
-                            <button class="btn btn-secondary" name="button" value="cancel">Cancel</button>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-dark" type="submit" name="button" value="register">
+                                <i class="bi bi-person-plus-fill"></i> Create Account
+                            </button>
+                            <button class="btn btn-outline-secondary" type="button" name="button" value="cancel">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
-                <div class="card-footer">
-                    <a href="@Url.Action("Login",new {Model.ReturnUrl })">Login</a>
+
+                <div class="card-footer text-center">
+                    <p class="mb-0">Already have an account? 
+                        <a href="@Url.Action("Login", new {Model.ReturnUrl })" class="text-dark">
+                            Login here <i class="bi bi-box-arrow-in-right"></i>
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Toggle password visibility
+            $('#togglePassword').click(function() {
+                const password = $('[asp-for="Password"]');
+                const icon = $(this).find('i');
+                
+                if (password.attr('type') === 'password') {
+                    password.attr('type', 'text');
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    password.attr('type', 'password');
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
+            // Password confirmation validation
+            $('#confirmPassword').on('input', function() {
+                const password = $('[asp-for="Password"]').val();
+                const confirmPassword = $(this).val();
+                const message = $('#passwordMatch');
+
+                if (password !== confirmPassword) {
+                    message.text('Passwords do not match');
+                } else {
+                    message.text('');
+                }
+            });
+        });
+    </script>
+}

@@ -241,27 +241,24 @@ namespace TheatreProject.Identity.MainModule.Account
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    if (!_roleManager.RoleExistsAsync(model.RoleName).GetAwaiter().GetResult())
+                    // Ensure Customer role exists
+                    if (!await _roleManager.RoleExistsAsync("Customer"))
                     {
-                        var userRole = new IdentityRole
-                        {
-                            Name = model.RoleName,
-                            NormalizedName = model.RoleName,
-
-                        };
-                        await _roleManager.CreateAsync(userRole);
+                        await _roleManager.CreateAsync(new IdentityRole("Customer"));
                     }
 
-                    await _userManager.AddToRoleAsync(user, model.RoleName);
+                    // Assign Customer role to user
+                    await _userManager.AddToRoleAsync(user, "Customer");
 
                     await _userManager.AddClaimsAsync(user, new Claim[]{
-                            new Claim(JwtClaimTypes.Name, model.Username),
-                            new Claim(JwtClaimTypes.Email, model.Email),
-                            new Claim(JwtClaimTypes.GivenName, model.FirstName),
-                            new Claim(JwtClaimTypes.FamilyName, model.LastName),
-                            new Claim(JwtClaimTypes.WebSite, "http://"+model.Username+".com"),
-                            new Claim(JwtClaimTypes.Role,"User") });
-
+                        new Claim(JwtClaimTypes.Name, model.Username),
+                        new Claim(JwtClaimTypes.Email, model.Email),
+                        new Claim(JwtClaimTypes.GivenName, model.FirstName),
+                        new Claim(JwtClaimTypes.FamilyName, model.LastName),
+                        new Claim(JwtClaimTypes.WebSite, "http://"+model.Username+".com"),
+                        new Claim(JwtClaimTypes.Role,"Customer")
+                    });
+                    
                     var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
                     var loginresult = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, lockoutOnFailure: true);
                     if (loginresult.Succeeded)
