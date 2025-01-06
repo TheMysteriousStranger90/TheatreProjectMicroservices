@@ -29,7 +29,7 @@ public class PerformanceService : BaseService, IPerformanceService
         return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = Const.PerformanceAPIBase + "/api/performances/{id}",
+            Url = $"{Const.PerformanceAPIBase}/api/performances/{id}",
             AccessToken = token
         });
     }

@@ -1,4 +1,6 @@
-﻿namespace TheatreProject.WebApp.Models;
+﻿using TheatreProject.WebApp.Utility;
+
+namespace TheatreProject.WebApp.Models;
 
 public class PerformanceDto
 {
@@ -21,4 +23,10 @@ public class PerformanceDto
     public DateTime? UpdatedDate { get; set; }
     public int TotalBookings { get; set; }
     public decimal Revenue { get; set; }
+    
+    
+    
+    [MaxFileSize(1)]
+    [AllowedExtensions(new string[] { ".jpg", ".png" })]
+    public IFormFile? Image { get; set; }
 }

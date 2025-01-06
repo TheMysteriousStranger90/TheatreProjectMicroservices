@@ -57,15 +57,36 @@ public class PerformanceController : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var accessToken = await HttpContext.GetTokenAsync("access_token");
-        var response = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(id, accessToken);
-
-        if (response != null && response.IsSuccess)
+        try
         {
-            var model = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(response.Result));
-            return View(model);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            _logger.LogInformation("Requesting performance details for ID: {Id}", id);
+
+            var response = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(id, accessToken);
+            _logger.LogInformation("Response received: {@Response}", response);
+
+            if (response?.IsSuccess == true && response.Result != null)
+            {
+                var model = JsonConvert.DeserializeObject<PerformanceDto>(
+                    JsonConvert.SerializeObject(response.Result));
+                
+                if (model == null)
+                {
+                    _logger.LogWarning("Failed to deserialize performance data");
+                    return NotFound();
+                }
+            
+                return View(model);
+            }
+
+            _logger.LogWarning("Performance not found or unsuccessful response");
+            return NotFound();
         }
-        return NotFound();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving performance details for ID: {Id}", id);
+            return NotFound();
+        }
     }
 
     [Authorize(Roles = "Administrator")]
