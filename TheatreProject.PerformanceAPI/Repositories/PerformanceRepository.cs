@@ -19,24 +19,36 @@ public class PerformanceRepository : IPerformanceRepository
 
     public async Task<PerformanceDto> CreateUpdatePerformance(PerformanceDto performanceDto)
     {
-        Performance performance = _mapper.Map<PerformanceDto, Performance>(performanceDto);
-
-        if (performance.Id == Guid.Empty)
+        try 
         {
-            performance.Id = Guid.NewGuid();
-            performance.CreatedDate = DateTime.UtcNow;
-            performance.Status = PerformanceStatus.Scheduled;
-            performance.AvailableSeats = performance.Capacity;
-            await _context.Performances.AddAsync(performance);
-        }
-        else
-        {
-            performance.UpdatedDate = DateTime.UtcNow;
-            _context.Performances.Update(performance);
-        }
+            Performance performance = _mapper.Map<Performance>(performanceDto);
 
-        await _context.SaveChangesAsync();
-        return _mapper.Map<Performance, PerformanceDto>(performance);
+            if (performance.Id == Guid.Empty)
+            {
+                performance.Id = Guid.NewGuid();
+                performance.CreatedDate = DateTime.UtcNow;
+                performance.Status = PerformanceStatus.Scheduled;
+                performance.AvailableSeats = performance.Capacity;
+                await _context.Performances.AddAsync(performance);
+                await _context.SaveChangesAsync();
+                return _mapper.Map<PerformanceDto>(performance);
+            }
+            
+            var existingPerformance = await _context.Performances.FindAsync(performance.Id);
+            if (existingPerformance == null)
+            {
+                throw new KeyNotFoundException($"Performance with ID {performance.Id} not found");
+            }
+
+            _context.Entry(existingPerformance).CurrentValues.SetValues(performance);
+            existingPerformance.UpdatedDate = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return _mapper.Map<PerformanceDto>(performance);
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("Error processing performance", ex);
+        }
     }
 
     public async Task<bool> DeletePerformance(Guid id)

@@ -14,8 +14,9 @@ public class PerformanceDto
     public TimeSpan Duration { get; set; }
     public TheatreCategory Category { get; set; }
     public int AvailableSeats { get; set; }
-    public string ImageUrl { get; set; }
-    
+    public string? ImageUrl { get; set; }
+    public string? ImageLocalPath { get; set; }
+    public IFormFile? Image { get; set; }
     public PerformanceStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }

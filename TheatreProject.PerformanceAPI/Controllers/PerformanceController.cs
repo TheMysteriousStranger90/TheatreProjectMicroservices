@@ -101,38 +101,72 @@ public class PerformanceController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator")]
-    public async Task<object> CreatePerformance([FromBody] PerformanceDto performanceDto)
+    //[Authorize(Roles = "Administrator")]
+    [HttpPost]
+    public async Task<ActionResult<ResponseDto>> CreatePerformance([FromForm] PerformanceDto performanceDto)
     {
         try
         {
-            _logger.LogInformation("Creating new performance: {Name}", performanceDto.Name);
+            performanceDto.Id = Guid.Empty;
+        
             var validator = new PerformanceDtoValidator();
             var validationResult = await validator.ValidateAsync(performanceDto);
 
             if (!validationResult.IsValid)
             {
-                _logger.LogWarning("Validation failed for performance creation");
                 _response.IsSuccess = false;
                 _response.ErrorMessages = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return _response;
+                return BadRequest(_response);
             }
 
-            PerformanceDto performance = await _repository.CreateUpdatePerformance(performanceDto);
-            _response.Result = performance;
-            _logger.LogInformation("Successfully created performance with ID: {Id}", performance.Id);
+            if (performanceDto.Image != null)
+            {
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(performanceDto.Image.FileName);
+                string filePath = @"wwwroot\PerformanceImages\" + fileName;
+
+                var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+                FileInfo file = new FileInfo(directoryLocation);
+                if (file.Exists)
+                {
+                    file.Delete();
+                }
+
+                var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(filePathDirectory));
+
+                using (var fileStream = new FileStream(filePathDirectory, FileMode.Create))
+                {
+                    await performanceDto.Image.CopyToAsync(fileStream);
+                }
+
+                var baseUrl =
+                    $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                performanceDto.ImageUrl = baseUrl + "/PerformanceImages/" + fileName;
+                performanceDto.ImageLocalPath = filePath;
+            }
+
+            var result = await _repository.CreateUpdatePerformance(performanceDto);
+            _response.Result = result;
+            
+            var keysToRemove = _cacheKeyService.GetKeysStartingWith(PerformancesCacheKey);
+            foreach (var cacheKey in keysToRemove)
+            {
+                _logger.LogDebug("Removing cache key after create: {CacheKey}", cacheKey);
+                _memoryCache.Remove(cacheKey);
+                _cacheKeyService.RemoveKey(cacheKey);
+            }
+            
+            return _response;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while creating performance");
+            _logger.LogError(ex, "Error creating performance");
             _response.IsSuccess = false;
-            _response.ErrorMessages = new List<string> { ex.ToString() };
+            _response.ErrorMessages = new List<string> { ex.Message };
+            return StatusCode(500, _response);
         }
-
-        return _response;
     }
-
-
+    
     [Authorize(Roles = "Administrator")]
     [HttpPut]
     public async Task<object> UpdatePerformance([FromBody] PerformanceDto performanceDto)
@@ -165,17 +199,29 @@ public class PerformanceController : ControllerBase
         return _response;
     }
 
-    [Authorize(Roles = "Administrator")]
+    //[Authorize(Roles = "Administrator")]
     [HttpDelete("{id}")]
     public async Task<object> DeletePerformance(Guid id)
     {
         try
         {
-            bool isSuccess = await _repository.DeletePerformance(id);
+            var isSuccess = await _repository.DeletePerformance(id);
             _response.Result = isSuccess;
+
+            if (isSuccess)
+            {
+                var keysToRemove = _cacheKeyService.GetKeysStartingWith(PerformancesCacheKey);
+                foreach (var cacheKey in keysToRemove)
+                {
+                    _logger.LogDebug("Removing cache key after delete: {CacheKey}", cacheKey);
+                    _memoryCache.Remove(cacheKey);
+                    _cacheKeyService.RemoveKey(cacheKey);
+                }
+            }
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error deleting performance: {Id}", id);
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.ToString() };
         }
@@ -245,7 +291,7 @@ public class PerformanceController : ControllerBase
                     {
                         _logger.LogInformation("Cache miss for statistics, fetching from database");
                         statistics = await _repository.GetPerformanceStatistics(id);
-                    
+
                         var cacheOptions = new MemoryCacheEntryOptions()
                             .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
                             .SetSlidingExpiration(TimeSpan.FromMinutes(2));
@@ -321,7 +367,7 @@ public class PerformanceController : ControllerBase
                     if (!_memoryCache.TryGetValue(cacheKey, out isSoldOut))
                     {
                         isSoldOut = await _repository.IsPerformanceSoldOut(id);
-                    
+
                         var cacheOptions = new MemoryCacheEntryOptions()
                             .SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
 
