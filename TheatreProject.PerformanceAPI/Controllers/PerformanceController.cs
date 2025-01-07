@@ -101,14 +101,13 @@ public class PerformanceController : ControllerBase
     }
 
     [HttpPost]
-    //[Authorize(Roles = "Administrator")]
-    [HttpPost]
+    [Authorize(Roles = "Administrator")]
     public async Task<ActionResult<ResponseDto>> CreatePerformance([FromForm] PerformanceDto performanceDto)
     {
         try
         {
             performanceDto.Id = Guid.Empty;
-        
+
             var validator = new PerformanceDtoValidator();
             var validationResult = await validator.ValidateAsync(performanceDto);
 
@@ -147,7 +146,7 @@ public class PerformanceController : ControllerBase
 
             var result = await _repository.CreateUpdatePerformance(performanceDto);
             _response.Result = result;
-            
+
             var keysToRemove = _cacheKeyService.GetKeysStartingWith(PerformancesCacheKey);
             foreach (var cacheKey in keysToRemove)
             {
@@ -155,7 +154,7 @@ public class PerformanceController : ControllerBase
                 _memoryCache.Remove(cacheKey);
                 _cacheKeyService.RemoveKey(cacheKey);
             }
-            
+
             return _response;
         }
         catch (Exception ex)
@@ -166,14 +165,15 @@ public class PerformanceController : ControllerBase
             return StatusCode(500, _response);
         }
     }
-    
+
     [Authorize(Roles = "Administrator")]
     [HttpPut]
-    public async Task<object> UpdatePerformance([FromBody] PerformanceDto performanceDto)
+    public async Task<ActionResult<ResponseDto>> UpdatePerformance([FromForm] PerformanceDto performanceDto)
     {
         try
         {
             _logger.LogInformation("Updating performance: {Id}", performanceDto.Id);
+
             var validator = new PerformanceDtoValidator();
             var validationResult = await validator.ValidateAsync(performanceDto);
 
@@ -182,24 +182,74 @@ public class PerformanceController : ControllerBase
                 _logger.LogWarning("Validation failed for performance update: {Id}", performanceDto.Id);
                 _response.IsSuccess = false;
                 _response.ErrorMessages = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-                return _response;
+                return BadRequest(_response);
             }
 
-            PerformanceDto performance = await _repository.CreateUpdatePerformance(performanceDto);
-            _response.Result = performance;
-            _logger.LogInformation("Successfully updated performance: {Id}", performance.Id);
+            var existingPerformance = await _repository.GetPerformanceById(performanceDto.Id);
+            if (existingPerformance == null)
+            {
+                _logger.LogWarning("Performance not found: {Id}", performanceDto.Id);
+                return NotFound(_response);
+            }
+
+            if (performanceDto.Image != null)
+            {
+                if (!string.IsNullOrEmpty(existingPerformance.ImageLocalPath))
+                {
+                    var oldFilePathDirectory =
+                        Path.Combine(Directory.GetCurrentDirectory(), existingPerformance.ImageLocalPath);
+                    FileInfo file = new FileInfo(oldFilePathDirectory);
+                    if (file.Exists)
+                    {
+                        file.Delete();
+                    }
+                }
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(performanceDto.Image.FileName);
+                string filePath = @"wwwroot\PerformanceImages\" + fileName;
+                var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(filePathDirectory));
+                using (var fileStream = new FileStream(filePathDirectory, FileMode.Create))
+                {
+                    await performanceDto.Image.CopyToAsync(fileStream);
+                }
+
+                var baseUrl =
+                    $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+                performanceDto.ImageUrl = baseUrl + "/PerformanceImages/" + fileName;
+                performanceDto.ImageLocalPath = filePath;
+            }
+            else
+            {
+                performanceDto.ImageUrl = existingPerformance.ImageUrl;
+                performanceDto.ImageLocalPath = existingPerformance.ImageLocalPath;
+            }
+
+            var updatedPerformance = await _repository.CreateUpdatePerformance(performanceDto);
+            _response.Result = updatedPerformance;
+            
+            var keysToRemove = _cacheKeyService.GetKeysStartingWith(PerformancesCacheKey);
+            foreach (var cacheKey in keysToRemove)
+            {
+                _logger.LogDebug("Removing cache key after update: {CacheKey}", cacheKey);
+                _memoryCache.Remove(cacheKey);
+                _cacheKeyService.RemoveKey(cacheKey);
+            }
+
+            _logger.LogInformation("Successfully updated performance: {Id}", updatedPerformance.Id);
+            return Ok(_response);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating performance: {Id}", performanceDto.Id);
             _response.IsSuccess = false;
-            _response.ErrorMessages = new List<string> { ex.ToString() };
+            _response.ErrorMessages = new List<string> { ex.Message };
+            return StatusCode(500, _response);
         }
-
-        return _response;
     }
 
-    //[Authorize(Roles = "Administrator")]
+    [Authorize(Roles = "Administrator")]
     [HttpDelete("{id}")]
     public async Task<object> DeletePerformance(Guid id)
     {
