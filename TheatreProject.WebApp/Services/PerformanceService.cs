@@ -51,7 +51,8 @@ public class PerformanceService : BaseService, IPerformanceService
             ApiType = ApiType.POST,
             Data = performanceDto,
             Url = $"{Const.PerformanceAPIBase}/api/performances",
-            AccessToken = token
+            AccessToken = token,
+            ContentType = ContentType.MultipartFormData
         });
     }
 

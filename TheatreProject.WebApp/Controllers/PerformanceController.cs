@@ -39,18 +39,27 @@ public class PerformanceController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Create(PerformanceDto model)
+    public async Task<IActionResult> Create([FromForm] PerformanceDto model, IFormFile? Image)
     {
-        if (ModelState.IsValid)
+        try
         {
-            var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var response = await _performanceService.CreatePerformanceAsync<ResponseDto>(model, accessToken);
-
-            if (response != null && response.IsSuccess)
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                model.Image = Image;
+                var accessToken = await HttpContext.GetTokenAsync("access_token");
+                var response = await _performanceService.CreatePerformanceAsync<ResponseDto>(model, accessToken);
+
+                if (response != null && response.IsSuccess)
+                {
+                    TempData["Success"] = "Performance created successfully";
+                    return RedirectToAction(nameof(Index));
+                }
+                ModelState.AddModelError("", response?.ErrorMessages?.FirstOrDefault() ?? "Error occurred");
             }
-            ModelState.AddModelError("", response?.ErrorMessages?.FirstOrDefault() ?? "Error occurred");
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", $"Error: {ex.Message}");
         }
         return View(model);
     }
@@ -121,37 +130,28 @@ public class PerformanceController : Controller
         }
         return View(model);
     }
-
-    [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var accessToken = await HttpContext.GetTokenAsync("access_token");
-        var response = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(id, accessToken);
-
-        if (response != null && response.IsSuccess)
-        {
-            var model = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(response.Result));
-            return View(model);
-        }
-        return NotFound();
-    }
-
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Delete(PerformanceDto model)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        if (ModelState.IsValid)
+        try
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var response = await _performanceService.DeletePerformanceAsync<ResponseDto>(model.Id, accessToken);
+            var response = await _performanceService.DeletePerformanceAsync<ResponseDto>(id, accessToken);
 
             if (response != null && response.IsSuccess)
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Search));
             }
+            return NotFound();
         }
-        return View(model);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting performance {Id}", id);
+            return Json(new { success = false, message = "Error deleting performance" });
+        }
     }
 
     public async Task<IActionResult> Search([FromQuery] PerformanceQueryParameters parameters)
