@@ -1,144 +1,163 @@
 ﻿@using TheatreProject.WebApp.Models.Enums
 @model TheatreProject.WebApp.Models.DTOs.EditPerformanceDto
+
 @{
-    ViewData["Title"] = "Edit Performance";
+ViewData["Title"] = "Edit Performance";
 }
 
-<div class="container">
+<div class="container py-4">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Performance</h4>
-                    <div class="btn-group">
-                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-light btn-sm">
-                            <i class="fas fa-arrow-left"></i> Back to Details
-                        </a>
-                        <a asp-action="Statistics" asp-route-id="@Model.Id" class="btn btn-outline-light btn-sm">
-                            <i class="fas fa-chart-bar"></i> Statistics
-                        </a>
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow-lg border-0 rounded-lg animate__animated animate__fadeIn">
+                <div class="card-header bg-dark text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-edit fa-fw me-2"></i> Edit Performance
+                        </h4>
+                        <div class="btn-group">
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-info-circle"></i> Details
+                            </a>
+                            <a asp-action="Statistics" asp-route-id="@Model.Id" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-chart-bar"></i> Statistics
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <form asp-action="EditPerformance" method="post" enctype="multipart/form-data">
+                <div class="card-body p-4">
+                    <form asp-action="EditPerformance" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         <input type="hidden" asp-for="Id" />
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                        <div class="row mb-3">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-4">
-                                <div class="text-center mb-3">
-                                    <img src="@Model.ImageUrl" id="currentImage" class="img-fluid rounded" alt="@Model.Name" />
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title mb-3">
+                                            <i class="fas fa-image me-2"></i>Performance Image
+                                        </h5>
+                                        <div class="custom-file-container">
+                                            <input asp-for="Image" type="file" class="custom-file-input" accept="image/*"
+                                                   onchange="previewImage(this);" hidden />
+                                            <img src="@Model.ImageUrl" id="currentImage" class="img-fluid rounded mb-3" alt="@Model.Name" />
+                                            <label class="custom-file-label d-flex flex-column align-items-center justify-content-center"
+                                                   for="Image">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span class="small">Click or drag to change image</span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-    
                             </div>
                             <div class="col-md-8">
-                                <div class="row mb-3">
+                                <div class="row g-3">
                                     <div class="col-md-8">
-                                        <div class="form-group">
-                                            <label asp-for="Name" class="control-label"></label>
-                                            <input asp-for="Name" class="form-control" />
+                                        <div class="form-floating">
+                                            <input asp-for="Name" class="form-control" placeholder="Performance Name" />
+                                            <label asp-for="Name">Performance Name</label>
                                             <span asp-validation-for="Name" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label asp-for="Status" class="control-label"></label>
-                                            <select asp-for="Status" asp-items="Html.GetEnumSelectList<PerformanceStatus>()" class="form-select">
+                                        <div class="form-floating">
+                                            <select asp-for="Status" asp-items="Html.GetEnumSelectList<PerformanceStatus>()"
+                                                    class="form-select">
                                             </select>
+                                            <label asp-for="Status">Status</label>
                                             <span asp-validation-for="Status" class="text-danger"></span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="form-group mb-3">
-                                    <label asp-for="Category" class="control-label"></label>
-                                    <select asp-for="Category" asp-items="Html.GetEnumSelectList<TheatreCategory>()" class="form-select">
+                                <div class="form-floating mt-3">
+                                    <select asp-for="Category" asp-items="Html.GetEnumSelectList<TheatreCategory>()"
+                                            class="form-select">
                                     </select>
+                                    <label asp-for="Category">Category</label>
                                     <span asp-validation-for="Category" class="text-danger"></span>
                                 </div>
 
-                                <div class="form-group mb-3">
-                                    <label asp-for="Description" class="control-label"></label>
-                                    <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                                <div class="form-floating mt-3">
+                                    <textarea asp-for="Description" class="form-control" style="height: 100px"
+                                              placeholder="Description"></textarea>
+                                    <label asp-for="Description">Description</label>
                                     <span asp-validation-for="Description" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="ShowDateTime" class="control-label"></label>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <div class="form-floating">
                                     <input asp-for="ShowDateTime" class="form-control" type="datetime-local" />
+                                    <label asp-for="ShowDateTime">Show Date & Time</label>
                                     <span asp-validation-for="ShowDateTime" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label asp-for="Duration" class="control-label"></label>
+                            <div class="col-md-4">
+                                <div class="form-floating">
                                     <input asp-for="Duration" class="form-control" type="time" />
+                                    <label asp-for="Duration">Duration</label>
                                     <span asp-validation-for="Duration" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label asp-for="BasePrice" class="control-label"></label>
+                            <div class="col-md-4">
+                                <div class="form-floating">
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
-                                        <input asp-for="BasePrice" class="form-control" type="number" step="0.01" />
+                                        <input asp-for="BasePrice" class="form-control" type="number" step="0.01" placeholder="Base Price" />
                                     </div>
                                     <span asp-validation-for="BasePrice" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label asp-for="TheatreName" class="control-label"></label>
-                                    <input asp-for="TheatreName" class="form-control" />
+                                <div class="form-floating">
+                                    <input asp-for="TheatreName" class="form-control" placeholder="Theatre Name" />
+                                    <label asp-for="TheatreName">Theatre Name</label>
                                     <span asp-validation-for="TheatreName" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label asp-for="City" class="control-label"></label>
-                                    <input asp-for="City" class="form-control" />
+                                <div class="form-floating">
+                                    <input asp-for="City" class="form-control" placeholder="City" />
+                                    <label asp-for="City">City</label>
                                     <span asp-validation-for="City" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="form-group">
-                                    <label asp-for="Address" class="control-label"></label>
-                                    <input asp-for="Address" class="form-control" />
+                                <div class="form-floating">
+                                    <input asp-for="Address" class="form-control" placeholder="Address" />
+                                    <label asp-for="Address">Address</label>
                                     <span asp-validation-for="Address" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Capacity" class="control-label"></label>
-                                    <input asp-for="Capacity" class="form-control" type="number" />
+                                <div class="form-floating">
+                                    <input asp-for="Capacity" class="form-control" type="number" placeholder="Capacity" />
+                                    <label asp-for="Capacity">Total Capacity</label>
                                     <span asp-validation-for="Capacity" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="AvailableSeats" class="control-label"></label>
-                                    <input asp-for="AvailableSeats" class="form-control" type="number" />
+                                <div class="form-floating">
+                                    <input asp-for="AvailableSeats" class="form-control" type="number" placeholder="Available Seats" />
+                                    <label asp-for="AvailableSeats">Available Seats</label>
                                     <span asp-validation-for="AvailableSeats" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="form-group text-center">
-                            <button type="submit" value="Update" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Changes
+                        
+                        <div class="form-group text-center mt-4">
+                            <button type="submit" value="Update"  class="btn btn-dark btn-lg px-5 me-2 submit-btn">
+                                <i class="fas fa-save me-2"></i> Save Changes
                             </button>
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
+                            <a asp-action="Search" class="btn btn-outline-secondary btn-lg px-5">
+                                <i class="fas fa-times me-2"></i> Cancel
                             </a>
                         </div>
                     </form>
@@ -148,27 +167,95 @@
     </div>
 </div>
 
+@section Styles {
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<style>
+    .custom-file-container {
+        border: 2px dashed #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .custom-file-container:hover {
+        border-color: #666;
+    }
+
+    .form-floating > .form-control:focus,
+    .form-floating > .form-select:focus {
+        border-color: #212529;
+        box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.25);
+    }
+
+    .submit-btn {
+        transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+    }
+</style>
+}
+
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script>
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#currentImage').attr('src', e.target.result);
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+<partial name="_ValidationScriptsPartial" />
 
-        $(document).ready(function () {
-            // Format the datetime-local input
-            var showDateTime = new Date('@Model.ShowDateTime.ToString("s")');
-            $('#ShowDateTime').val(showDateTime.toISOString().slice(0,16));
+<script>
+    $(document).ready(function() {
 
-            // Format the duration input
-            var duration = '@Model.Duration.ToString(@"hh\:mm")';
-            $('#Duration').val(duration);
+        $('[data-bs-toggle="tooltip"]').tooltip();
+        
+        $('.custom-file-container').on('dragover', function(e) {
+            e.preventDefault();
+            $(this).css('border-color', '#212529');
         });
-    </script>
+
+        $('.custom-file-container').on('dragleave', function(e) {
+            e.preventDefault();
+            $(this).css('border-color', '#ccc');
+        });
+
+        $('.custom-file-container').on('drop', function(e) {
+            e.preventDefault();
+            $(this).css('border-color', '#ccc');
+            $('#Image').prop('files', e.originalEvent.dataTransfer.files);
+            previewImage($('#Image')[0]);
+        });
+
+        $('.custom-file-container').click(function() {
+            $('#Image').click();
+        });
+    });
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#imagePreview')
+                    .attr('src', e.target.result)
+                    .removeClass('d-none')
+                    .addClass('animate__animated animate__fadeIn');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    $('form').on('submit', function() {
+        $('.submit-btn')
+            .prop('disabled', true)
+            .html('<span class="spinner-border spinner-border-sm me-2"></span>Creating...');
+    });
+</script>
 }
