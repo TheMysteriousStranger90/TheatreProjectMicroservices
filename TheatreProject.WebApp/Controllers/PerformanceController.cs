@@ -87,7 +87,7 @@ public class PerformanceController : Controller
         return View(model);
     }
 
-    public async Task<IActionResult> Details(Guid id)
+    public async Task<IActionResult> DetailsPerformance(Guid id)
     {
         try
         {

@@ -1,0 +1,210 @@
+﻿@model TheatreProject.WebApp.Models.DTOs.PerformanceDto
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4 animate__animated animate__fadeIn">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-action="Search">Performances</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <div class="col-md-6" data-aos="fade-right">
+            <div class="position-relative overflow-hidden rounded-3 shadow-lg hover-zoom">
+                <img src="@Model.ImageUrl" class="img-fluid w-100" alt="@Model.Name" 
+                     data-bs-toggle="modal" data-bs-target="#imageModal">
+                <div class="position-absolute top-0 end-0 m-3">
+                    @switch (Model.Status)
+                    {
+                        case PerformanceStatus.Scheduled:
+                            if(Model.AvailableSeats == 0)
+                            {
+                                <span class="badge bg-danger animate__animated animate__pulse animate__infinite">
+                                    <i class="fas fa-ticket-alt me-1"></i> Sold Out
+                                </span>
+                            }
+                            else if(Model.AvailableSeats < Model.Capacity * 0.2)
+                            {
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Few Tickets Left
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i> Available
+                                </span>
+                            }
+                            break;
+                        case PerformanceStatus.Cancelled:
+                            <span class="badge bg-danger">
+                                <i class="fas fa-ban me-1"></i> Cancelled
+                            </span>
+                            break;
+                        case PerformanceStatus.Completed:
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-flag-checkered me-1"></i> Completed
+                            </span>
+                            break;
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" data-aos="fade-left">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-4 fw-bold text-gradient">@Model.Name</h1>
+                <div class="text-danger fs-2 fw-bold price-tag">@Model.BasePrice.ToString("C")</div>
+            </div>
+
+            <div class="mb-4 d-flex gap-2 flex-wrap">
+                <span class="badge bg-dark p-2">
+                    <i class="fas fa-theater-masks me-1"></i> @Model.Category
+                </span>
+                <span class="badge bg-dark p-2">
+                    <i class="far fa-calendar-alt me-1"></i> @Model.ShowDateTime.ToString("dddd, MMM dd, yyyy")
+                </span>
+                <span class="badge bg-dark p-2">
+                    <i class="far fa-clock me-1"></i> @Model.ShowDateTime.ToString("HH:mm")
+                </span>
+            </div>
+
+            <div class="card bg-light mb-4 border-0 shadow-sm hover-lift">
+                <div class="card-body">
+                    <p class="lead mb-0">@Model.Description</p>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body">
+                            <h5 class="d-flex align-items-center">
+                                <i class="fas fa-theater-masks text-danger me-2"></i>
+                                <span>Theatre</span>
+                            </h5>
+                            <p class="mb-0 text-muted">@Model.TheatreName</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body">
+                            <h5 class="d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                <span>Location</span>
+                            </h5>
+                            <p class="mb-0 text-muted">
+                                @Model.Address<br/>
+                                <strong>@Model.City</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body">
+                            <h5 class="d-flex align-items-center">
+                                <i class="fas fa-clock text-danger me-2"></i>
+                                <span>Duration</span>
+                            </h5>
+                            <p class="mb-0 text-muted">@Model.Duration.ToString(@"hh\:mm") hours</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="card-body">
+                            <h5 class="d-flex align-items-center">
+                                <i class="fas fa-chair text-danger me-2"></i>
+                                <span>Seating</span>
+                            </h5>
+                            <div class="progress mb-2 bg-light">
+                                <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
+                                     role="progressbar"
+                                     style="width: @(((Model.Capacity - Model.AvailableSeats) * 100) / Model.Capacity)%">
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <strong>@Model.AvailableSeats</strong> seats available of <strong>@Model.Capacity</strong> total
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-3 mb-4" data-aos="fade-up" data-aos-delay="500">
+                @if (User.IsInRole("Administrator"))
+                {
+                <a asp-action="EditPerformance" asp-route-id="@Model.Id"
+                   class="btn btn-outline-danger btn-lg hover-lift">
+                    <i class="fas fa-edit me-2"></i> Edit Performance
+                </a>
+                <a asp-action="Statistics" asp-route-id="@Model.Id"
+                   class="btn btn-outline-dark btn-lg hover-lift">
+                    <i class="fas fa-chart-bar me-2"></i> View Statistics
+                </a>
+                }
+                <a asp-action="Search" class="btn btn-outline-secondary btn-lg hover-lift ms-auto">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Search
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.Name">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <style>
+        .hover-zoom {
+            transition: transform 0.3s ease;
+        }
+        .hover-zoom:hover {
+            transform: scale(1.02);
+        }
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+        }
+        .text-gradient {
+            background: linear-gradient(45deg, #212529, #dc3545);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .price-tag {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    </script>
+}
