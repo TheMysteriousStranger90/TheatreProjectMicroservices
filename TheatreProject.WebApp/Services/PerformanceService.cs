@@ -8,10 +8,12 @@ namespace TheatreProject.WebApp.Services;
 public class PerformanceService : BaseService, IPerformanceService
 {
     private readonly IHttpClientFactory _clientFactory;
+    private readonly ILogger<PerformanceService> _logger;
 
-    public PerformanceService(IHttpClientFactory clientFactory) : base(clientFactory)
+    public PerformanceService(IHttpClientFactory clientFactory, ILogger<PerformanceService> logger) : base(clientFactory, logger)
     {
         _clientFactory = clientFactory;
+        _logger = logger;
     }
 
     public async Task<T> GetPerformancesAsync<T>(string token)
@@ -44,7 +46,7 @@ public class PerformanceService : BaseService, IPerformanceService
         });
     }
 
-    public async Task<T> CreatePerformanceAsync<T>(PerformanceDto performanceDto, string token)
+    public async Task<T> CreatePerformanceAsync<T>(CreatePerformanceDto performanceDto, string token)
     {
         return await SendAsync<T>(new RequestDto
         {
@@ -63,7 +65,8 @@ public class PerformanceService : BaseService, IPerformanceService
             ApiType = ApiType.PUT,
             Data = performanceDto,
             Url = $"{Const.PerformanceAPIBase}/api/performances",
-            AccessToken = token
+            AccessToken = token,
+            ContentType = ContentType.MultipartFormData
         });
     }
 

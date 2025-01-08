@@ -17,9 +17,9 @@ public class PerformanceRepository : IPerformanceRepository
         _mapper = mapper;
     }
 
-    public async Task<PerformanceDto> CreateUpdatePerformance(PerformanceDto performanceDto)
+    public async Task<PerformanceDto> CreateUpdatePerformance(CreatePerformanceDto performanceDto)
     {
-        try 
+        try
         {
             Performance performance = _mapper.Map<Performance>(performanceDto);
 
@@ -33,7 +33,7 @@ public class PerformanceRepository : IPerformanceRepository
                 await _context.SaveChangesAsync();
                 return _mapper.Map<PerformanceDto>(performance);
             }
-            
+
             var existingPerformance = await _context.Performances.FindAsync(performance.Id);
             if (existingPerformance == null)
             {

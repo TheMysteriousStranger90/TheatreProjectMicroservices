@@ -29,38 +29,53 @@ public class PerformanceController : Controller
         }
         return View(performances);
     }
-
-    [Authorize(Roles = "Administrator")]
-    public IActionResult Create()
+    
+    public IActionResult CreatePerformance()
     {
         return View();
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Create([FromForm] PerformanceDto model, IFormFile? Image)
+    public async Task<IActionResult> CreatePerformance([FromForm] CreatePerformanceDto model, IFormFile? Image)
     {
         try
         {
-            if (ModelState.IsValid)
+            _logger.LogInformation("Starting CreatePerformance with data: {@Model}", model);
+        
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            if (string.IsNullOrEmpty(accessToken))
             {
-                model.Image = Image;
-                var accessToken = await HttpContext.GetTokenAsync("access_token");
-                var response = await _performanceService.CreatePerformanceAsync<ResponseDto>(model, accessToken);
+                _logger.LogWarning("Access token is null or empty");
+                return RedirectToAction("Login", "Auth");
+            }
 
-                if (response != null && response.IsSuccess)
+            model.Image = Image;
+            var response = await _performanceService.CreatePerformanceAsync<ResponseDto>(model, accessToken);
+
+            if (response != null)
+            {
+                _logger.LogInformation("API Response: {@Response}", response);
+            
+                if (response.IsSuccess)
                 {
                     TempData["Success"] = "Performance created successfully";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Search));
                 }
-                ModelState.AddModelError("", response?.ErrorMessages?.FirstOrDefault() ?? "Error occurred");
+            
+                ModelState.AddModelError("", response.ErrorMessages?.FirstOrDefault() ?? "Unknown error");
+            }
+            else
+            {
+                _logger.LogWarning("API returned null response");
+                ModelState.AddModelError("", "Server returned no response");
             }
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error creating performance");
             ModelState.AddModelError("", $"Error: {ex.Message}");
         }
+    
         return View(model);
     }
 
@@ -124,7 +139,7 @@ public class PerformanceController : Controller
 
             if (response != null && response.IsSuccess)
             {
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Search));
             }
             ModelState.AddModelError("", response?.ErrorMessages?.FirstOrDefault() ?? "Error occurred");
         }

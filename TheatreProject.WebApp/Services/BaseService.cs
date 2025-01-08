@@ -10,11 +10,13 @@ namespace TheatreProject.WebApp.Services;
 public class BaseService : IBaseService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<BaseService> _logger;
     public ResponseDto responseModel { get; set; }
 
-    public BaseService(IHttpClientFactory httpClientFactory)
+    public BaseService(IHttpClientFactory httpClientFactory, ILogger<BaseService> logger)
     {
         _httpClientFactory = httpClientFactory;
+        _logger = logger;
         this.responseModel = new ResponseDto();
     }
 
@@ -22,93 +24,71 @@ public class BaseService : IBaseService
     {
         try
         {
-            HttpClient client = _httpClientFactory.CreateClient("TheatreProjectAPI");
-            HttpRequestMessage message = new HttpRequestMessage();
-            message.Headers.Add("Accept", "application/json");
-            message.RequestUri = new Uri(requestDto.Url);
-            client.DefaultRequestHeaders.Clear();
-            
-            if (requestDto.Data != null)
+            using var client = _httpClientFactory.CreateClient("TheatreProjectAPI");
+            using var message = new HttpRequestMessage();
+
+            _logger.LogInformation("Sending request to {Url} with type {ApiType}",
+                requestDto.Url, requestDto.ApiType);
+
+            if (requestDto.ContentType == ContentType.MultipartFormData)
             {
-                var tmp = JsonConvert.SerializeObject(requestDto.Data);
-                message.Content = new StringContent(tmp, Encoding.UTF8, "application/json");
+                message.Headers.Add("Accept", "*/*");
+                var content = new MultipartFormDataContent();
+
+                foreach (var prop in requestDto.Data.GetType().GetProperties())
+                {
+                    var value = prop.GetValue(requestDto.Data);
+                    if (value is IFormFile file)
+                    {
+                        if (file != null)
+                        {
+                            _logger.LogInformation("Adding file {FileName} to request", file.FileName);
+                            content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
+                        }
+                    }
+                    else if (value != null)
+                    {
+                        _logger.LogInformation("Adding field {PropertyName}={Value}", prop.Name, value);
+                        content.Add(new StringContent(value.ToString()), prop.Name);
+                    }
+                }
+
+                message.Content = content;
             }
+
+            message.RequestUri = new Uri(requestDto.Url);
+            message.Method = requestDto.ApiType switch
+            {
+                ApiType.POST => HttpMethod.Post,
+                ApiType.PUT => HttpMethod.Put,
+                ApiType.DELETE => HttpMethod.Delete,
+                _ => HttpMethod.Get
+            };
 
             if (!string.IsNullOrEmpty(requestDto.AccessToken))
             {
                 client.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", requestDto.AccessToken);
             }
-            
-            if (requestDto.ContentType == ContentType.MultipartFormData)
-            {
-                var content = new MultipartFormDataContent();
 
-                foreach(var prop in requestDto.Data.GetType().GetProperties())
-                {
-                    var value = prop.GetValue(requestDto.Data);
-                    if(value is FormFile)
-                    {
-                        var file = (FormFile)value;
-                        if (file != null)
-                        {
-                            content.Add(new StreamContent(file.OpenReadStream()),prop.Name,file.FileName);
-                        }
-                    }
-                    else
-                    {
-                        content.Add(new StringContent(value == null ? "" : value.ToString()), prop.Name);
-                    }
-                }
-                message.Content = content;
-            }
-            else
+            var response = await client.SendAsync(message);
+            var con = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("API Response: Status={StatusCode}, Content={Content}",
+                response.StatusCode, con);
+
+            if (!response.IsSuccessStatusCode)
             {
-                if (requestDto.Data != null)
-                {
-                    message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
-                }
+                _logger.LogWarning("API returned error status code: {StatusCode}", response.StatusCode);
+                throw new HttpRequestException($"API returned {response.StatusCode}: {con}");
             }
 
-            HttpResponseMessage apiResponse = null;
-            switch (requestDto.ApiType)
-            {
-                case ApiType.POST:
-                    message.Method = HttpMethod.Post;
-                    break;
-                case ApiType.PUT:
-                    message.Method = HttpMethod.Put;
-                    break;
-                case ApiType.DELETE:
-                    message.Method = HttpMethod.Delete;
-                    break;
-                default:
-                    message.Method = HttpMethod.Get;
-                    break;
-            }
-
-            apiResponse = await client.SendAsync(message);
-
-            var apiContent = await apiResponse.Content.ReadAsStringAsync();
-            var apiResponseDto = JsonConvert.DeserializeObject<T>(apiContent);
-            return apiResponseDto;
+            return JsonConvert.DeserializeObject<T>(con);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            var dto = new ResponseDto
-            {
-                DisplayMessage = "Error",
-                ErrorMessages = new List<string> { Convert.ToString(e.Message) },
-                IsSuccess = false
-            };
-            var res = JsonConvert.SerializeObject(dto);
-            var apiResponseDto = JsonConvert.DeserializeObject<T>(res);
-            return apiResponseDto;
+            _logger.LogError(ex, "Error sending request");
+            throw;
         }
-    }
-
-    public void Dispose()
-    {
-        GC.SuppressFinalize(true);
     }
 }

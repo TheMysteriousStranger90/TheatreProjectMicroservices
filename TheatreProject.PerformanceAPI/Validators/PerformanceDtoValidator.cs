@@ -3,7 +3,7 @@ using TheatreProject.PerformanceAPI.Models.Dto;
 
 namespace TheatreProject.PerformanceAPI.Validators;
 
-public class PerformanceDtoValidator : AbstractValidator<PerformanceDto>
+public class PerformanceDtoValidator : AbstractValidator<CreatePerformanceDto>
 {
     public PerformanceDtoValidator()
     {

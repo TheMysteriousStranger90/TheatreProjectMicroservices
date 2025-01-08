@@ -20,9 +20,8 @@ public class PerformanceDto
     
     public PerformanceStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
-    public DateTime? UpdatedDate { get; set; }
-    public int TotalBookings { get; set; }
-    public decimal Revenue { get; set; }
+    public DateTime? UpdatedDate { get; set; } 
+
     
     
     

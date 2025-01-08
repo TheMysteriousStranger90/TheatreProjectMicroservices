@@ -101,13 +101,11 @@ public class PerformanceController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrator")]
-    public async Task<ActionResult<ResponseDto>> CreatePerformance([FromForm] PerformanceDto performanceDto)
+    //[Authorize(Roles = "Administrator")]
+    public async Task<ActionResult<ResponseDto>> CreatePerformance([FromForm] CreatePerformanceDto performanceDto)
     {
         try
         {
-            performanceDto.Id = Guid.Empty;
-
             var validator = new PerformanceDtoValidator();
             var validationResult = await validator.ValidateAsync(performanceDto);
 
@@ -165,7 +163,7 @@ public class PerformanceController : ControllerBase
             return StatusCode(500, _response);
         }
     }
-
+/*
     [Authorize(Roles = "Administrator")]
     [HttpPut]
     public async Task<ActionResult<ResponseDto>> UpdatePerformance([FromForm] PerformanceDto performanceDto)
@@ -246,9 +244,9 @@ public class PerformanceController : ControllerBase
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
             return StatusCode(500, _response);
-        }
+        }  
     }
-
+*/
     [Authorize(Roles = "Administrator")]
     [HttpDelete("{id}")]
     public async Task<object> DeletePerformance(Guid id)
