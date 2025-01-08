@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using TheatreProject.PerformanceAPI.Models;
-using TheatreProject.PerformanceAPI.Models.Dto;
+using TheatreProject.PerformanceAPI.Models.DTOs;
 
 namespace TheatreProject.PerformanceAPI.Mapping;
 
@@ -30,5 +30,8 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.TotalBookings, opt => opt.Ignore())
             .ForMember(dest => dest.Revenue, opt => opt.Ignore())
             .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
+        
+        CreateMap<Performance, EditPerformanceDto>().ReverseMap()
+            .ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => DateTime.UtcNow));
     }
 }

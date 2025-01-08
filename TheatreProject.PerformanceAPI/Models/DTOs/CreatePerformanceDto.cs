@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TheatreProject.PerformanceAPI.Models.Dto;
+namespace TheatreProject.PerformanceAPI.Models.DTOs;
 
 public class CreatePerformanceDto
 {

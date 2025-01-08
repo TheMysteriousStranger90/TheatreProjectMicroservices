@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using TheatreProject.PerformanceAPI.Models.Dto;
+using TheatreProject.PerformanceAPI.Models.DTOs;
 
 namespace TheatreProject.PerformanceAPI.Validators;
 

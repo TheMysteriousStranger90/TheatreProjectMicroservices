@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TheatreProject.PerformanceAPI.Data;
 using TheatreProject.PerformanceAPI.Models;
-using TheatreProject.PerformanceAPI.Models.Dto;
+using TheatreProject.PerformanceAPI.Models.DTOs;
 
 namespace TheatreProject.PerformanceAPI.Repositories;
 
@@ -49,6 +49,56 @@ public class PerformanceRepository : IPerformanceRepository
         {
             throw new ApplicationException("Error processing performance", ex);
         }
+    }
+    
+    public async Task<PerformanceDto> UpdatePerformance(EditPerformanceDto dto, string baseUrl)
+    {
+        var existingPerformance = await _context.Performances.FindAsync(dto.Id);
+        if (existingPerformance == null)
+        {
+            return null;
+        }
+
+        if (dto.Image != null)
+        {
+            await HandleImageUpdate(dto, existingPerformance, baseUrl);
+        }
+        else
+        {
+            dto.ImageUrl = existingPerformance.ImageUrl;
+            dto.ImageLocalPath = existingPerformance.ImageLocalPath;
+        }
+
+        _context.Entry(existingPerformance).CurrentValues.SetValues(_mapper.Map<Performance>(dto));
+        existingPerformance.UpdatedDate = DateTime.UtcNow;
+    
+        await _context.SaveChangesAsync();
+        return _mapper.Map<PerformanceDto>(existingPerformance);
+    }
+
+    private async Task HandleImageUpdate(EditPerformanceDto dto, Performance existingPerformance, string baseUrl)
+    {
+        if (!string.IsNullOrEmpty(existingPerformance.ImageLocalPath))
+        {
+            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), existingPerformance.ImageLocalPath);
+            if (File.Exists(oldFilePath))
+            {
+                File.Delete(oldFilePath);
+            }
+        }
+
+        string fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Image.FileName)}";
+        string filePath = Path.Combine("wwwroot", "PerformanceImages", fileName);
+        string fullPath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+        using (var fileStream = new FileStream(fullPath, FileMode.Create))
+        {
+            await dto.Image.CopyToAsync(fileStream);
+        }
+
+        dto.ImageUrl = $"{baseUrl}/PerformanceImages/{fileName}";
+        dto.ImageLocalPath = filePath;
     }
 
     public async Task<bool> DeletePerformance(Guid id)

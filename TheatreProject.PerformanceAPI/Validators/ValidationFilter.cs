@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using TheatreProject.PerformanceAPI.Models.Dto;
+using TheatreProject.PerformanceAPI.Models.DTOs;
 
 namespace TheatreProject.PerformanceAPI.Validators;
 

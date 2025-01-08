@@ -1,5 +1,5 @@
 ﻿using TheatreProject.PerformanceAPI.Models;
-using TheatreProject.PerformanceAPI.Models.Dto;
+using TheatreProject.PerformanceAPI.Models.DTOs;
 
 namespace TheatreProject.PerformanceAPI.Repositories;
 
@@ -9,6 +9,7 @@ public interface IPerformanceRepository
     Task<IEnumerable<PerformanceDto>> GetUpcomingPerformances();
     Task<PerformanceDto> GetPerformanceById(Guid id);
     Task<PerformanceDto> CreateUpdatePerformance(CreatePerformanceDto performanceDto);
+    Task<PerformanceDto> UpdatePerformance(EditPerformanceDto dto, string baseUrl);
     Task<bool> DeletePerformance(Guid id);
     Task<PagedResponse<PerformanceDto>> GetFilteredPerformances(PerformanceQueryParameters parameters);
     Task<PerformanceStatistics> GetPerformanceStatistics(Guid id);
