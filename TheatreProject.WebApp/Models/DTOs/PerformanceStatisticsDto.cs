@@ -1,4 +1,4 @@
-﻿namespace TheatreProject.WebApp.Models;
+﻿namespace TheatreProject.WebApp.Models.DTOs;
 
 public class PerformanceStatisticsDto
 {

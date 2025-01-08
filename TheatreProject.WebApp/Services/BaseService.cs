@@ -3,6 +3,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using Newtonsoft.Json;
 using TheatreProject.WebApp.Models;
+using TheatreProject.WebApp.Models.DTOs;
+using TheatreProject.WebApp.Models.Enums;
 using TheatreProject.WebApp.Services.Interfaces;
 
 namespace TheatreProject.WebApp.Services;

@@ -1,4 +1,4 @@
-﻿namespace TheatreProject.WebApp.Models;
+﻿namespace TheatreProject.WebApp.Models.Enums;
 
 public enum TheatreCategory
 {

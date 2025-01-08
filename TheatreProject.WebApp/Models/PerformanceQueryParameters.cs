@@ -1,4 +1,6 @@
-﻿namespace TheatreProject.WebApp.Models;
+﻿using TheatreProject.WebApp.Models.Enums;
+
+namespace TheatreProject.WebApp.Models;
 
 public class PerformanceQueryParameters
 {

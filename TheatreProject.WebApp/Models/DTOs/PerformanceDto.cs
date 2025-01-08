@@ -1,6 +1,7 @@
-﻿using TheatreProject.WebApp.Utility;
+﻿using TheatreProject.WebApp.Models.Enums;
+using TheatreProject.WebApp.Utility;
 
-namespace TheatreProject.WebApp.Models;
+namespace TheatreProject.WebApp.Models.DTOs;
 
 public class PerformanceDto
 {
@@ -21,9 +22,6 @@ public class PerformanceDto
     public PerformanceStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; } 
-
-    
-    
     
     [MaxFileSize(1)]
     [AllowedExtensions(new string[] { ".jpg", ".png" })]

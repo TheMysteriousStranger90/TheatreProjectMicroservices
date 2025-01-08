@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TheatreProject.WebApp.Models.Enums;
 using TheatreProject.WebApp.Utility;
 
-namespace TheatreProject.WebApp.Models;
+namespace TheatreProject.WebApp.Models.DTOs;
 
 public class CreatePerformanceDto
 {

@@ -1,7 +1,7 @@
-﻿using System.Net.Mime;
-using TheatreProject.WebApp.Constants;
+﻿using TheatreProject.WebApp.Models.Enums;
+using ContentType = TheatreProject.WebApp.Models.Enums.ContentType;
 
-namespace TheatreProject.WebApp.Models;
+namespace TheatreProject.WebApp.Models.DTOs;
 
 public class RequestDto
 {

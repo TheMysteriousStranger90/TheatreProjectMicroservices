@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
 using TheatreProject.WebApp.Constants;
 using TheatreProject.WebApp.Models;
+using TheatreProject.WebApp.Models.DTOs;
+using TheatreProject.WebApp.Models.Enums;
 using TheatreProject.WebApp.Services.Interfaces;
 
 namespace TheatreProject.WebApp.Services;

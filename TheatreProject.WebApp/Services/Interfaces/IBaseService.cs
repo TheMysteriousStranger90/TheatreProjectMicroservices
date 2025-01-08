@@ -1,4 +1,5 @@
 ﻿using TheatreProject.WebApp.Models;
+using TheatreProject.WebApp.Models.DTOs;
 
 namespace TheatreProject.WebApp.Services.Interfaces;
 

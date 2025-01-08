@@ -1,4 +1,5 @@
-﻿@model PagedResponse<PerformanceDto>
+﻿@using TheatreProject.WebApp.Models.Enums
+@model PagedResponse<TheatreProject.WebApp.Models.DTOs.PerformanceDto>
 @{
     ViewData["Title"] = "Search Performances";
     var sortBy = Context.Request.Query["SortBy"].ToString();
