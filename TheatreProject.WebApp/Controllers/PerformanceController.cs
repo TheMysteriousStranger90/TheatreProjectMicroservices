@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -10,13 +11,18 @@ namespace TheatreProject.WebApp.Controllers;
 
 public class PerformanceController : Controller
 {
+    private readonly IMapper _mapper;
     private readonly IPerformanceService _performanceService;
     private readonly ILogger<PerformanceController> _logger;
 
-    public PerformanceController(IPerformanceService performanceService, ILogger<PerformanceController> logger)
+    public PerformanceController(
+        IPerformanceService performanceService,
+        ILogger<PerformanceController> logger,
+        IMapper mapper)
     {
         _performanceService = performanceService;
         _logger = logger;
+        _mapper = mapper;
     }
 
     public async Task<IActionResult> Index()
@@ -28,9 +34,10 @@ public class PerformanceController : Controller
         {
             performances = JsonConvert.DeserializeObject<List<PerformanceDto>>(Convert.ToString(response.Result));
         }
+
         return View(performances);
     }
-    
+
     public IActionResult CreatePerformance()
     {
         return View();
@@ -42,7 +49,7 @@ public class PerformanceController : Controller
         try
         {
             _logger.LogInformation("Starting CreatePerformance with data: {@Model}", model);
-        
+
             var accessToken = await HttpContext.GetTokenAsync("access_token");
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -56,13 +63,13 @@ public class PerformanceController : Controller
             if (response != null)
             {
                 _logger.LogInformation("API Response: {@Response}", response);
-            
+
                 if (response.IsSuccess)
                 {
                     TempData["Success"] = "Performance created successfully";
                     return RedirectToAction(nameof(Search));
                 }
-            
+
                 ModelState.AddModelError("", response.ErrorMessages?.FirstOrDefault() ?? "Unknown error");
             }
             else
@@ -76,7 +83,7 @@ public class PerformanceController : Controller
             _logger.LogError(ex, "Error creating performance");
             ModelState.AddModelError("", $"Error: {ex.Message}");
         }
-    
+
         return View(model);
     }
 
@@ -94,13 +101,13 @@ public class PerformanceController : Controller
             {
                 var model = JsonConvert.DeserializeObject<PerformanceDto>(
                     JsonConvert.SerializeObject(response.Result));
-                
+
                 if (model == null)
                 {
                     _logger.LogWarning("Failed to deserialize performance data");
                     return NotFound();
                 }
-            
+
                 return View(model);
             }
 
@@ -115,38 +122,70 @@ public class PerformanceController : Controller
     }
 
     [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Edit(Guid id)
+    public async Task<IActionResult> EditPerformance(Guid id)
     {
-        var accessToken = await HttpContext.GetTokenAsync("access_token");
-        var response = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(id, accessToken);
-
-        if (response != null && response.IsSuccess)
+        try
         {
-            var model = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(response.Result));
-            return View(model);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(id, accessToken);
+
+            if (response != null && response.IsSuccess)
+            {
+                var performanceDto = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(response.Result));
+                var editModel = _mapper.Map<EditPerformanceDto>(performanceDto);
+                return View(editModel);
+            }
+
+            return NotFound();
         }
-        return NotFound();
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting performance for edit: {Id}", id);
+            return NotFound();
+        }
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Administrator")]
-    public async Task<IActionResult> Edit(PerformanceDto model)
+    public async Task<IActionResult> EditPerformance(EditPerformanceDto model, IFormFile? Image)
     {
-        if (ModelState.IsValid)
+        try
         {
+            _logger.LogInformation("Updating performance: {@Model}", model);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             var accessToken = await HttpContext.GetTokenAsync("access_token");
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                _logger.LogWarning("Access token is null or empty");
+                return RedirectToAction("Login", "Auth");
+            }
+
+            model.Image = Image;
             var response = await _performanceService.UpdatePerformanceAsync<ResponseDto>(model, accessToken);
 
             if (response != null && response.IsSuccess)
             {
+                TempData["Success"] = "Performance updated successfully";
                 return RedirectToAction(nameof(Search));
             }
-            ModelState.AddModelError("", response?.ErrorMessages?.FirstOrDefault() ?? "Error occurred");
+
+            ModelState.AddModelError("", response?.ErrorMessages?.FirstOrDefault() ?? "Error updating performance");
+            return View(model);
         }
-        return View(model);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating performance: {Id}", model.Id);
+            ModelState.AddModelError("", $"Error: {ex.Message}");
+            return View(model);
+        }
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Administrator")]
@@ -161,6 +200,7 @@ public class PerformanceController : Controller
             {
                 return RedirectToAction(nameof(Search));
             }
+
             return NotFound();
         }
         catch (Exception ex)
@@ -219,6 +259,7 @@ public class PerformanceController : Controller
             var stats = JsonConvert.DeserializeObject<PerformanceStatisticsDto>(Convert.ToString(response.Result));
             return View(stats);
         }
+
         return NotFound();
     }
 

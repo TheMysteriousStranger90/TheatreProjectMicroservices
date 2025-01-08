@@ -4,6 +4,7 @@ using Serilog.Enrichers.Span;
 using Serilog.Exceptions;
 using TheatreProject.WebApp.Constants;
 using TheatreProject.WebApp.Extensions;
+using TheatreProject.WebApp.Mapping;
 using TheatreProject.WebApp.Services;
 using TheatreProject.WebApp.Services.Interfaces;
 
@@ -21,6 +22,8 @@ builder.Host.UseSerilog((context, loggerConfig) =>
         .Enrich.With<ActivityEnricher>()
         .WriteTo.Seq(context.Configuration.GetValue<string>("SeqAddress")!);
 });
+
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationServices(builder.Configuration);

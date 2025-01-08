@@ -60,7 +60,7 @@ public class PerformanceService : BaseService, IPerformanceService
         });
     }
 
-    public async Task<T> UpdatePerformanceAsync<T>(PerformanceDto performanceDto, string token)
+    public async Task<T> UpdatePerformanceAsync<T>(EditPerformanceDto performanceDto, string token)
     {
         return await SendAsync<T>(new RequestDto
         {

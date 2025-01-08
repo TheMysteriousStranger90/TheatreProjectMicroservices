@@ -1,5 +1,5 @@
 ﻿@using TheatreProject.WebApp.Models.Enums
-@model TheatreProject.WebApp.Models.DTOs.PerformanceDto
+@model TheatreProject.WebApp.Models.DTOs.EditPerformanceDto
 @{
     ViewData["Title"] = "Edit Performance";
 }
@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <form asp-action="EditPerformance" method="post" enctype="multipart/form-data">
                         <input type="hidden" asp-for="Id" />
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
