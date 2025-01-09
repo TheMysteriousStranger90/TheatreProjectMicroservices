@@ -5,15 +5,13 @@ using TheatreProject.ShoppingCartAPI.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApplicationServices(builder.Configuration);
-
-
-
-
 
 
 builder.Services.AddJwtBearerServices();

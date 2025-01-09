@@ -14,6 +14,8 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddHttpContextAccessor();
+        
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         
