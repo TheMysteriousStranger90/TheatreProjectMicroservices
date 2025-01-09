@@ -1,4 +1,7 @@
 using TheatreProject.ShoppingCartAPI.Extensions;
+using TheatreProject.ShoppingCartAPI.Services;
+using TheatreProject.ShoppingCartAPI.Services.Interfaces;
+using TheatreProject.ShoppingCartAPI.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApplicationServices(builder.Configuration);
+
+
+
+
+
+
 builder.Services.AddJwtBearerServices();
 
 // Configure the HTTP request pipeline.

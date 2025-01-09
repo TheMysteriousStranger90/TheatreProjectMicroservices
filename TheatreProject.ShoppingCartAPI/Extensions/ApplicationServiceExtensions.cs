@@ -1,6 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheatreProject.ShoppingCartAPI.Data;
 using TheatreProject.ShoppingCartAPI.Mapping;
+using TheatreProject.ShoppingCartAPI.Repositories;
+using TheatreProject.ShoppingCartAPI.Repositories.Interfaces;
+using TheatreProject.ShoppingCartAPI.Services;
+using TheatreProject.ShoppingCartAPI.Services.Interfaces;
+using TheatreProject.ShoppingCartAPI.Utility;
 
 namespace TheatreProject.ShoppingCartAPI.Extensions;
 
@@ -13,6 +18,16 @@ public static class ApplicationServiceExtensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         
         services.AddAutoMapper(typeof(AutoMapperProfile));
+        
+        services.AddScoped<ICartRepository, CartRepository>();
+        
+        services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
+        services.AddScoped<ICouponService, CouponService>();
+
+        services.AddHttpClient("PerformanceAPI", u => u.BaseAddress =
+            new Uri(configuration["ServiceUrls:PerformanceAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
+        services.AddHttpClient("CouponAPI", u => u.BaseAddress =
+            new Uri(configuration["ServiceUrls:CouponAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
 
         return services;
     }
