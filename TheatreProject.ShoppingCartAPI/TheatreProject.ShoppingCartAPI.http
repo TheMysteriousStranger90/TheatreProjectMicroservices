@@ -1,0 +1,6 @@
+@TheatreProject.ShoppingCartAPI_HostAddress = http://localhost:5039
+
+GET {{TheatreProject.ShoppingCartAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
