@@ -1,0 +1,154 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using TheatreProject.WebApp.Models.Enums
+@model TheatreProject.WebApp.Models.DTOs.PerformanceDto
+@{
+    ViewData["Title"] = "Book Tickets";
+}
+
+<div class="container py-5">
+    <form asp-action="AddToCart" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="PerformanceId" value="@Model.Id"/>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3>Book Tickets for @Model.Name</h3>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select name="TicketType" class="form-select" required>
+                                        @foreach (TicketType type in Enum.GetValues(typeof(TicketType)))
+                                        {
+                                            <option value="@((int)type)">@type</option>
+                                        }
+                                    </select>
+                                    <label>Ticket Type</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" name="Quantity" class="form-control"
+                                           min="1" max="@Model.AvailableSeats" required/>
+                                    <label>Quantity</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text"
+                                           name="SeatNumbers"
+                                           class="form-control"
+                                           pattern="^[A-Z][0-9]+(,[A-Z][0-9]+)*$"
+                                           placeholder="A1,A2,A3"
+                                           data-bs-toggle="tooltip"
+                                           title="Enter seat numbers in format: A1,B2,C3"
+                                           required/>
+                                    <label>Seat Numbers (comma-separated)</label>
+                                    <small class="form-text text-muted">
+                                        Examples:
+                                        <ul>
+                                            <li>Single seat: A1</li>
+                                            <li>Multiple seats: A1,A2,A3</li>
+                                            <li>Different rows: A1,B2,C3</li>
+                                            <li>Sequential seats: D1,D2,D3,D4</li>
+                                        </ul>
+                                        Use capital letters (A-Z) for rows and numbers for seats, separated by commas.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>Price Details</h4>
+                        <hr/>
+                        <p>Base Price: @Model.BasePrice.ToString("C")</p>
+                        <h3 class="text-danger" id="totalPrice">@Model.BasePrice.ToString("C")</h3>
+                        <button type="submit" class="btn btn-danger w-100 mt-3">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            const basePrice = @Json.Serialize(Model.BasePrice);
+            const priceDisplay = $('#totalPrice');
+            const quantityInput = $('input[name="Quantity"]');
+            const ticketTypeSelect = $('select[name="TicketType"]');
+            const seatsInput = $('input[name="SeatNumbers"]');
+            const form = $('form');
+
+            function calculatePrice(type) {
+                switch(parseInt(type)) {
+                    case @((int)TicketType.Student): return basePrice * 0.8;
+                    case @((int)TicketType.Senior): return basePrice * 0.85;
+                    case @((int)TicketType.VIP): return basePrice * 1.5;
+                    default: return basePrice;
+                }
+            }
+
+            function updatePrice() {
+                const quantity = parseInt(quantityInput.val()) || 0;
+                const ticketType = ticketTypeSelect.val();
+                const pricePerTicket = calculatePrice(ticketType);
+                const total = pricePerTicket * quantity;
+
+                priceDisplay.text(total.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }));
+            }
+
+            function validateSeats(seats, quantity) {
+                const seatPattern = /^[A-Z][0-9]+$/;
+                return seats.length === quantity && 
+                       seats.every(seat => seatPattern.test(seat));
+            }
+
+            function validateForm(e) {
+                const seats = seatsInput.val().split(',').map(s => s.trim());
+                const quantity = parseInt(quantityInput.val());
+
+                if (!quantity || quantity < 1) {
+                    e.preventDefault();
+                    alert('Please select a valid quantity');
+                    return false;
+                }
+
+                if (!validateSeats(seats, quantity)) {
+                    e.preventDefault();
+                    alert('Please enter valid seat numbers (e.g., A1,B2,C3)');
+                    return false;
+                }
+
+                return true;
+            }
+
+            quantityInput.on('change', updatePrice);
+            ticketTypeSelect.on('change', updatePrice);
+            form.on('submit', validateForm);
+
+            // Initial price update
+            updatePrice();
+        });
+    </script>
+}

@@ -51,7 +51,32 @@ public class CartController : Controller
     }
 
     [Authorize]
+    public async Task<IActionResult> AddToCart(Guid performanceId)
+    {
+        try
+        {
+            var token = await HttpContext.GetTokenAsync("access_token");
+            var response = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(performanceId, token);
+
+            if (response?.IsSuccess != true)
+            {
+                TempData["error"] = "Performance not found";
+                return RedirectToAction("Search", "Performance");
+            }
+
+            var performance = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(response.Result));
+            return View(performance);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error preparing add to cart view");
+            TempData["error"] = "Error loading booking form";
+            return RedirectToAction("Search", "Performance");
+        }
+    }
+
     [HttpPost]
+    [Authorize]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddToCart(CartDetailsDto cartDetails)
     {
@@ -63,35 +88,19 @@ public class CartController : Controller
             if (string.IsNullOrEmpty(userEmail))
             {
                 TempData["error"] = "User email not found";
-                return RedirectToAction("DetailsPerformance", "Performance", new { id = cartDetails.PerformanceId });
+                return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
             }
 
-            var performanceResponse =
-                await _performanceService.GetPerformanceByIdAsync<ResponseDto>(cartDetails.PerformanceId, "");
+            var performanceResponse = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(cartDetails.PerformanceId, "");
             if (!performanceResponse.IsSuccess)
             {
                 TempData["error"] = "Performance not found";
-                return RedirectToAction("DetailsPerformance", "Performance", new { id = cartDetails.PerformanceId });
+                return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
             }
 
-            var performance =
-                JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(performanceResponse.Result));
-            decimal pricePerTicket = performance.BasePrice;
-
-            switch (cartDetails.TicketType)
-            {
-                case TicketType.Student:
-                    pricePerTicket *= 0.8M;
-                    break;
-                case TicketType.Senior:
-                    pricePerTicket *= 0.85M;
-                    break;
-                case TicketType.VIP:
-                    pricePerTicket *= 1.5M;
-                    break;
-            }
-
-            CartDto cartDto = new()
+            var performance = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(performanceResponse.Result));
+            decimal pricePerTicket = CalculateTicketPrice(performance.BasePrice, cartDetails.TicketType);
+            var cartDto = new CartDto
             {
                 CartHeader = new CartHeaderDto
                 {
@@ -113,24 +122,33 @@ public class CartController : Controller
                     }
                 }
             };
-
             var token = await HttpContext.GetTokenAsync("access_token");
             var response = await _cartService.AddToCartAsync<ResponseDto>(cartDto, token);
 
             if (response?.IsSuccess == true)
             {
                 TempData["success"] = "Added to cart successfully";
-                return RedirectToAction("Search", "Performance", new { id = cartDetails.PerformanceId });
+                return RedirectToAction("Search", "Performance");
             }
 
             TempData["error"] = response?.ErrorMessages?.FirstOrDefault() ?? "Failed to add to cart";
-            return RedirectToAction("DetailsPerformance", "Performance", new { id = cartDetails.PerformanceId });
+            return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding to cart for performance {PerformanceId}", cartDetails.PerformanceId);
+            _logger.LogError(ex, "Error adding to cart");
             TempData["error"] = "An error occurred while adding to cart";
-            return RedirectToAction("DetailsPerformance", "Performance", new { id = cartDetails.PerformanceId });
+            return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
         }
+    }
+    private decimal CalculateTicketPrice(decimal basePrice, TicketType ticketType)
+    {
+        return ticketType switch
+        {
+            TicketType.Student => basePrice * 0.8M,
+            TicketType.Senior => basePrice * 0.85M,
+            TicketType.VIP => basePrice * 1.5M,
+            _ => basePrice
+        };
     }
 }
