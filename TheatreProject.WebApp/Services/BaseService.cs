@@ -32,30 +32,39 @@ public class BaseService : IBaseService
             _logger.LogInformation("Sending request to {Url} with type {ApiType}",
                 requestDto.Url, requestDto.ApiType);
 
-            if (requestDto.ContentType == ContentType.MultipartFormData)
+            if (requestDto.Data != null)
             {
-                message.Headers.Add("Accept", "*/*");
-                var content = new MultipartFormDataContent();
-
-                foreach (var prop in requestDto.Data.GetType().GetProperties())
+                if (requestDto.ContentType == ContentType.MultipartFormData)
                 {
-                    var value = prop.GetValue(requestDto.Data);
-                    if (value is IFormFile file)
+                    message.Headers.Add("Accept", "*/*");
+                    var content = new MultipartFormDataContent();
+
+                    foreach (var prop in requestDto.Data.GetType().GetProperties())
                     {
-                        if (file != null)
+                        var value = prop.GetValue(requestDto.Data);
+                        if (value is IFormFile file)
                         {
-                            _logger.LogInformation("Adding file {FileName} to request", file.FileName);
-                            content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
+                            if (file != null)
+                            {
+                                _logger.LogInformation("Adding file {FileName} to request", file.FileName);
+                                content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
+                            }
+                        }
+                        else if (value != null)
+                        {
+                            _logger.LogInformation("Adding field {PropertyName}={Value}", prop.Name, value);
+                            content.Add(new StringContent(value.ToString()), prop.Name);
                         }
                     }
-                    else if (value != null)
-                    {
-                        _logger.LogInformation("Adding field {PropertyName}={Value}", prop.Name, value);
-                        content.Add(new StringContent(value.ToString()), prop.Name);
-                    }
-                }
 
-                message.Content = content;
+                    message.Content = content;
+                }
+                else
+                {
+                    var jsonContent = JsonConvert.SerializeObject(requestDto.Data);
+                    message.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    _logger.LogInformation("Request JSON content: {Content}", jsonContent);
+                }
             }
 
             message.RequestUri = new Uri(requestDto.Url);
@@ -73,19 +82,21 @@ public class BaseService : IBaseService
                     new AuthenticationHeaderValue("Bearer", requestDto.AccessToken);
             }
 
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
             var response = await client.SendAsync(message);
-            var con = await response.Content.ReadAsStringAsync();
+            var contentRes = await response.Content.ReadAsStringAsync();
 
             _logger.LogInformation("API Response: Status={StatusCode}, Content={Content}",
-                response.StatusCode, con);
+                response.StatusCode, contentRes);
 
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("API returned error status code: {StatusCode}", response.StatusCode);
-                throw new HttpRequestException($"API returned {response.StatusCode}: {con}");
+                throw new HttpRequestException($"API returned {response.StatusCode}: {contentRes}");
             }
 
-            return JsonConvert.DeserializeObject<T>(con);
+            return JsonConvert.DeserializeObject<T>(contentRes);
         }
         catch (Exception ex)
         {

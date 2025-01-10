@@ -50,7 +50,7 @@ public class PerformanceRepository : IPerformanceRepository
             throw new ApplicationException("Error processing performance", ex);
         }
     }
-    
+
     public async Task<PerformanceDto> UpdatePerformance(EditPerformanceDto dto, string baseUrl)
     {
         var existingPerformance = await _context.Performances.FindAsync(dto.Id);
@@ -71,7 +71,7 @@ public class PerformanceRepository : IPerformanceRepository
 
         _context.Entry(existingPerformance).CurrentValues.SetValues(_mapper.Map<Performance>(dto));
         existingPerformance.UpdatedDate = DateTime.UtcNow;
-    
+
         await _context.SaveChangesAsync();
         return _mapper.Map<PerformanceDto>(existingPerformance);
     }
@@ -163,6 +163,17 @@ public class PerformanceRepository : IPerformanceRepository
         if (parameters.EndDate.HasValue)
         {
             query = query.Where(p => p.ShowDateTime <= parameters.EndDate);
+        }
+
+        // Add price range filtering
+        if (parameters.MinPrice.HasValue)
+        {
+            query = query.Where(p => p.BasePrice >= parameters.MinPrice);
+        }
+
+        if (parameters.MaxPrice.HasValue)
+        {
+            query = query.Where(p => p.BasePrice <= parameters.MaxPrice);
         }
 
         var totalRecords = await query.CountAsync();

@@ -93,6 +93,10 @@ public class PerformanceService : IPerformanceService
             query.Add("StartDate", parameters.StartDate.Value.ToString("o"));
         if (parameters.EndDate.HasValue)
             query.Add("EndDate", parameters.EndDate.Value.ToString("o"));
+        if (parameters.MinPrice.HasValue)
+            query.Add("MinPrice", parameters.MinPrice.ToString());
+        if (parameters.MaxPrice.HasValue)
+            query.Add("MaxPrice", parameters.MaxPrice.ToString());
     
         query.Add("PageNumber", parameters.PageNumber.ToString());
         query.Add("PageSize", parameters.PageSize.ToString());

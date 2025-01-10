@@ -16,7 +16,7 @@ public class CartController : Controller
     private readonly ICouponService _couponService;
     protected ResponseDto _response;
 
-    public CartController(ICartRepository cartRepository, ICouponRepository couponRepository,
+    public CartController(ICartRepository cartRepository,
         ICouponService couponService)
     {
         _cartRepository = cartRepository;

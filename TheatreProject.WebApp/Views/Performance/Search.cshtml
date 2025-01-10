@@ -112,15 +112,25 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-floating">
-                        <input type="number" name="MinPrice" class="form-control"
-                               value="@Context.Request.Query["MinPrice"]" placeholder="Min Price">
+                        <input type="number"
+                               name="MinPrice"
+                               class="form-control"
+                               step="0.01"
+                               min="0"
+                               value="@Context.Request.Query["MinPrice"]"
+                               placeholder="Min Price">
                         <label>Min Price</label>
                     </div>
                 </div>
                 <div class="col-md-2">
                     <div class="form-floating">
-                        <input type="number" name="MaxPrice" class="form-control"
-                               value="@Context.Request.Query["MaxPrice"]" placeholder="Max Price">
+                        <input type="number"
+                               name="MaxPrice"
+                               class="form-control"
+                               step="0.01"
+                               min="0"
+                               value="@Context.Request.Query["MaxPrice"]"
+                               placeholder="Max Price">
                         <label>Max Price</label>
                     </div>
                 </div>
@@ -258,12 +268,32 @@
 </div>
 
 @section Scripts {
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         $(document).ready(function() {
+            // Initialize AOS
+            AOS.init({
+                duration: 800,
+                once: true
+            });
+
             // Initialize tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Price validation and form handling
+            $('#searchForm').on('submit', function(e) {
+                const minPrice = parseFloat($('input[name="MinPrice"]').val());
+                const maxPrice = parseFloat($('input[name="MaxPrice"]').val());
+
+                if (minPrice && maxPrice && minPrice > maxPrice) {
+                    e.preventDefault();
+                    alert('Minimum price cannot be greater than maximum price');
+                    return false;
+                }
+                showLoader();
             });
 
             // Auto-submit on select change
@@ -272,30 +302,37 @@
                 $('#searchForm').submit();
             });
 
-            // Show loading indicator
+            // Loading indicator
             function showLoader() {
-                $('body').append('<div class="loading-overlay"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+                if (!$('.loading-overlay').length) {
+                    $('body').append(`
+                        <div class="loading-overlay">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    `);
+                }
             }
 
-            // Add loading state to search button
-            $('#searchForm').on('submit', function() {
-                showLoader();
-            });
+            // Update pagination links
+            function updatePaginationLinks() {
+                $('.page-link').each(function() {
+                    let href = $(this).attr('href');
+                    const params = new URLSearchParams(window.location.search);
+                    const preserveParams = ['MinPrice', 'MaxPrice', 'SearchTerm', 'Category', 'SortBy', 'PageSize'];
+                    
+                    preserveParams.forEach(param => {
+                        if (params.has(param)) {
+                            href += `&${param}=${params.get(param)}`;
+                        }
+                    });
+                    
+                    $(this).attr('href', href);
+                });
+            }
 
-            // Add view toggle (grid/list)
-            $('.view-toggle').click(function(e) {
-                e.preventDefault();
-                $('.performance-cards').toggleClass('row-cols-md-3 row-cols-md-1');
-            });
-
-            // Infinite scroll
-            $(window).scroll(function() {
-                if($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
-                    if(@Model.HasNext) {
-                        loadMoreResults();
-                    }
-                }
-            });
+            updatePaginationLinks();
         });
     </script>
 
@@ -314,7 +351,7 @@
         }
 
         .card {
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
         }
 
         .card:hover {
@@ -330,6 +367,20 @@
             background-color: #000;
             color: white;
         }
-        
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25);
+        }
+
+        .btn-hover {
+            transition: all 0.3s;
+        }
+
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
     </style>
 }
