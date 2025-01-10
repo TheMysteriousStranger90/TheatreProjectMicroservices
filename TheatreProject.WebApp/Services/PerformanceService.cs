@@ -7,20 +7,20 @@ using TheatreProject.WebApp.Services.Interfaces;
 
 namespace TheatreProject.WebApp.Services;
 
-public class PerformanceService : BaseService, IPerformanceService
+public class PerformanceService : IPerformanceService
 {
-    private readonly IHttpClientFactory _clientFactory;
+    private readonly IBaseService _baseService;
     private readonly ILogger<PerformanceService> _logger;
 
-    public PerformanceService(IHttpClientFactory clientFactory, ILogger<PerformanceService> logger) : base(clientFactory, logger)
+    public PerformanceService(IBaseService baseService, ILogger<PerformanceService> logger)
     {
-        _clientFactory = clientFactory;
+        _baseService = baseService;
         _logger = logger;
     }
 
     public async Task<T> GetPerformancesAsync<T>(string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
             Url = $"{Const.PerformanceAPIBase}/api/performances",
@@ -30,7 +30,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> GetPerformanceByIdAsync<T>(Guid id, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
             Url = $"{Const.PerformanceAPIBase}/api/performances/{id}",
@@ -40,7 +40,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> GetUpcomingPerformancesAsync<T>(string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
             Url = $"{Const.PerformanceAPIBase}/api/performances/upcoming",
@@ -50,7 +50,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> CreatePerformanceAsync<T>(CreatePerformanceDto performanceDto, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.POST,
             Data = performanceDto,
@@ -62,7 +62,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> UpdatePerformanceAsync<T>(EditPerformanceDto performanceDto, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.PUT,
             Data = performanceDto,
@@ -74,7 +74,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> DeletePerformanceAsync<T>(Guid id, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.DELETE,
             Url = $"{Const.PerformanceAPIBase}/api/performances/{id}",
@@ -101,7 +101,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
         var queryString = new QueryBuilder(query).ToQueryString().Value;
 
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
             Url = $"{Const.PerformanceAPIBase}/api/performances/search{queryString}",
@@ -111,7 +111,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> GetPerformanceStatisticsAsync<T>(Guid id, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
             Url = $"{Const.PerformanceAPIBase}/api/performances/{id}/statistics",
@@ -121,7 +121,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> UpdatePerformanceStatusAsync<T>(Guid id, PerformanceStatus status, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.PUT,
             Data = status,
@@ -132,7 +132,7 @@ public class PerformanceService : BaseService, IPerformanceService
 
     public async Task<T> CheckIfSoldOutAsync<T>(Guid id, string token)
     {
-        return await SendAsync<T>(new RequestDto
+        return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
             Url = $"{Const.PerformanceAPIBase}/api/performances/{id}/sold-out",

@@ -3,7 +3,7 @@ using TheatreProject.WebApp.Models.DTOs;
 
 namespace TheatreProject.WebApp.Services.Interfaces;
 
-public interface IPerformanceService : IBaseService
+public interface IPerformanceService
 {
     Task<T> GetPerformancesAsync<T>(string token);
     Task<T> GetPerformanceByIdAsync<T>(Guid id, string token);

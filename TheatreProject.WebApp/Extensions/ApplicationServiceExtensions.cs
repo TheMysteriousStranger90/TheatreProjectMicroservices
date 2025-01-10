@@ -13,7 +13,9 @@ public static class ApplicationServiceExtensions
         Const.PerformanceAPIBase = configuration["ServiceUrls:PerformanceAPI"];
         Const.ShoppingCartAPIBase = configuration["ServiceUrls:ShoppingCartAPI"];
         
+        services.AddScoped<IBaseService, BaseService>();
         services.AddScoped<IPerformanceService, PerformanceService>();
+        services.AddScoped<ICartService, CartService>();
         services.AddControllersWithViews();
 
         return services;
