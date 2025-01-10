@@ -172,7 +172,9 @@
                     </h3>
 
                     <form asp-controller="Cart" asp-action="AddToCart" method="post" id="bookingForm">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="PerformanceId" value="@Model.Id"/>
+                        <input type="hidden" name="PricePerTicket" id="pricePerTicketInput" value="@Model.BasePrice"/>
 
                         <div class="row g-4">
                             <div class="col-md-6">
@@ -180,7 +182,7 @@
                                     <select class="form-select" id="ticketType" name="TicketType" required>
                                         @foreach (TicketType type in Enum.GetValues(typeof(TicketType)))
                                         {
-                                            <option value="@type">@type</option>
+                                        <option value="@((int)type)">@type</option>
                                         }
                                     </select>
                                     <label for="ticketType">Ticket Type</label>
@@ -276,55 +278,63 @@
 @section Scripts {
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            once: true
-        });
-    </script>
-
-
-    <script>
         $(document).ready(function() {
-            const basePrice = @Model.BasePrice;
+            AOS.init({ duration: 800, once: true });
+            const basePrice = @Json.Serialize(Model.BasePrice);
+
+            function calculatePrice(type, basePrice) {
+                switch(parseInt(type)) {
+                    case @((int)TicketType.Student): return basePrice * 0.8;
+                    case @((int)TicketType.Senior): return basePrice * 0.85;
+                    case @((int)TicketType.VIP): return basePrice * 1.5;
+                    default: return basePrice;
+                }
+            }
 
             function updatePrice() {
                 const quantity = parseInt($('#quantity').val()) || 0;
                 const ticketType = $('#ticketType').val();
-                let price = basePrice;
+                const price = calculatePrice(ticketType, basePrice);
 
-
-                switch(ticketType) {
-                    case 'Student':
-                        price *= 0.8;
-                        break;
-                    case 'Senior':
-                        price *= 0.85;
-                        break;
-                    case 'VIP':
-                        price *= 1.5;
-                        break;
-                }
-
+                $('#pricePerTicketInput').val(price);
                 const total = price * quantity;
-                $('#totalPrice').text(total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
-                $('#pricePerTicket').text(`${price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} per ticket`);
+
+                $('#totalPrice').text(total.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                }));
+                $('#pricePerTicket').text(`${price.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                })} per ticket`);
             }
+
             $('#quantity, #ticketType').on('change', updatePrice);
 
-            // Form validation
             $('#bookingForm').on('submit', function(e) {
                 e.preventDefault();
 
                 const seats = $('#seatNumbers').val().split(',').map(s => s.trim());
                 const quantity = parseInt($('#quantity').val());
 
-                if (seats.length !== quantity) {
-                    alert('The number of seats must match the quantity of tickets.');
-                    return;
+                if (!quantity || quantity < 1) {
+                    alert('Please select a valid quantity');
+                    return false;
                 }
 
-                this.submit();
+                if (!seats.length || seats.some(s => !s)) {
+                    alert('Please enter valid seat numbers');
+                    return false;
+                }
+
+                if (seats.length !== quantity) {
+                    alert('The number of seats must match the quantity of tickets');
+                    return false;
+                }
+
+                return true;
             });
+            updatePrice();
         });
     </script>
 }
