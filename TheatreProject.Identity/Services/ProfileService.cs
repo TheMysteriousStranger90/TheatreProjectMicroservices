@@ -35,6 +35,8 @@ public class ProfileService : IProfileService
         claims = claims.Where(claim => context.RequestedClaimTypes.Contains(claim.Type)).ToList();
         claims.Add(new Claim(JwtClaimTypes.FamilyName, user.LastName));
         claims.Add(new Claim(JwtClaimTypes.GivenName, user.FirstName));
+        claims.Add(new Claim(JwtClaimTypes.Email, user.Email));
+
         if (_userManager.SupportsUserRole)
         {
             IList<string> roles = await _userManager.GetRolesAsync(user);

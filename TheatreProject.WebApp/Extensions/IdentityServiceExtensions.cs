@@ -22,8 +22,10 @@ public static class IdentityServiceExtensions
 
                 options.ClaimActions.MapJsonKey("role", "role", "role");
                 options.ClaimActions.MapJsonKey("sub", "sub", "sub");
+                options.ClaimActions.MapJsonKey("email", "email", "email");
                 options.TokenValidationParameters.NameClaimType = "name";
                 options.TokenValidationParameters.RoleClaimType = "role";
+                
                 options.Scope.Add("theatre");
                 options.SaveTokens = true;
             });

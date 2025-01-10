@@ -51,6 +51,7 @@ public class DbInitializer : IDbInitializer
             new Claim(JwtClaimTypes.Name, adminUser.FirstName + " " + adminUser.LastName),
             new Claim(JwtClaimTypes.GivenName, adminUser.FirstName),
             new Claim(JwtClaimTypes.FamilyName, adminUser.LastName),
+            new Claim(JwtClaimTypes.Email, adminUser.Email),
             new Claim(JwtClaimTypes.Role, Const.Administrator),
         }).Result;
 
@@ -60,8 +61,8 @@ public class DbInitializer : IDbInitializer
             Email = "customer1@gmail.com",
             EmailConfirmed = true,
             PhoneNumber = "111111111111",
-            FirstName = "Ben",
-            LastName = "Cust"
+            FirstName = "John",
+            LastName = "Customer"
         };
 
         _userManager.CreateAsync(customerUser, "Admin123*").GetAwaiter().GetResult();
@@ -72,6 +73,7 @@ public class DbInitializer : IDbInitializer
             new Claim(JwtClaimTypes.Name, customerUser.FirstName + " " + customerUser.LastName),
             new Claim(JwtClaimTypes.GivenName, customerUser.FirstName),
             new Claim(JwtClaimTypes.FamilyName, customerUser.LastName),
+            new Claim(JwtClaimTypes.Email, customerUser.Email),
             new Claim(JwtClaimTypes.Role, Const.Customer),
         }).Result;
     }

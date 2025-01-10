@@ -12,8 +12,8 @@ using TheatreProject.Identity.Data;
 namespace TheatreProject.Identity.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250106052006_InitialIdentityTables")]
-    partial class InitialIdentityTables
+    [Migration("20250110124955_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
