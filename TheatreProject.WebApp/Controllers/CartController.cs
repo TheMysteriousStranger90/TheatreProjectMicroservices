@@ -201,7 +201,7 @@ public class CartController : Controller
                                             PerformanceDto>(Convert.ToString(performanceResponse.Result));
                                 }
                             }
-                            
+
                             cartDto.CartHeader.GrandTotal += (double)(detail.PricePerTicket * detail.Quantity);
                         }
 
@@ -227,5 +227,32 @@ public class CartController : Controller
                 CartDetails = new List<CartDetailsDto>()
             };
         }
+    }
+
+    public async Task<IActionResult> RemoveFromCart(Guid cartDetailsId)
+    {
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.RemoveFromCartAsync<ResponseDto>(cartDetailsId, accessToken);
+
+        if (response.IsSuccess)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View();
+    }
+
+    public async Task<IActionResult> ClearCart()
+    {
+        var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.ClearCartAsync<ResponseDto>(userId, accessToken);
+
+        if (response.IsSuccess)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View();
     }
 }

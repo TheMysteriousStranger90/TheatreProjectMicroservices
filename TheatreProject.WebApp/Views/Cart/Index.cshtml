@@ -15,7 +15,7 @@
                         <i class="fas fa-shopping-cart"></i> Shopping Cart
                     </div>
                     <div>
-                        <a asp-action="Clear" class="btn btn-outline-danger btn-sm">
+                        <a asp-action="ClearCart" class="btn btn-outline-danger btn-sm">
                             <i class="fas fa-trash"></i> Clear Cart
                         </a>
                         <a asp-controller="Performance" asp-action="Search" class="btn btn-outline-light btn-sm">
@@ -47,7 +47,7 @@
                                     <div class="text-end">
                                         <h5 class="text-danger mb-1">@item.PricePerTicket.ToString("C")</h5>
                                         <p class="text-muted mb-2">Quantity: @item.Quantity</p>
-                                        <a asp-action="Remove" asp-route-cartDetailsId="@item.Id" 
+                                        <a asp-action="RemoveFromCart" asp-route-cartDetailsId="@item.Id" 
                                            class="btn btn-outline-danger btn-sm">
                                             <i class="fas fa-trash"></i> Remove
                                         </a>
