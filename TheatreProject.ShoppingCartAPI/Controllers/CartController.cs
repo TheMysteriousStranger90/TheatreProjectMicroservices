@@ -2,11 +2,13 @@
 using TheatreProject.ShoppingCartAPI.Models.DTOs;
 using TheatreProject.ShoppingCartAPI.Repositories.Interfaces;
 using TheatreProject.ShoppingCartAPI.Services.Interfaces;
+using TheatreProject.ShoppingCartAPI.Validators;
 
 namespace TheatreProject.ShoppingCartAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[ServiceFilter(typeof(ValidationFilter))]
 public class CartController : Controller
 {
     private readonly ICartRepository _cartRepository;
@@ -49,8 +51,14 @@ public class CartController : Controller
     {
         try
         {
-            CartDto cartDt = await _cartRepository.CreateUpdateCart(cartDto);
+            if (string.IsNullOrEmpty(cartDto.CartHeader?.UserId))
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { "User ID is required" };
+                return _response;
+            }
 
+            CartDto cartDt = await _cartRepository.CreateUpdateCart(cartDto);
             _response.Result = cartDt;
         }
         catch (Exception ex)
@@ -161,5 +169,4 @@ public class CartController : Controller
 
         return _response;
     }
-    
 }

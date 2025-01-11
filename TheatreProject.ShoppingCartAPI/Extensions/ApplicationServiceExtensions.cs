@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation;
+using FluentValidation.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 using TheatreProject.ShoppingCartAPI.Data;
 using TheatreProject.ShoppingCartAPI.Mapping;
 using TheatreProject.ShoppingCartAPI.Repositories;
@@ -6,6 +8,7 @@ using TheatreProject.ShoppingCartAPI.Repositories.Interfaces;
 using TheatreProject.ShoppingCartAPI.Services;
 using TheatreProject.ShoppingCartAPI.Services.Interfaces;
 using TheatreProject.ShoppingCartAPI.Utility;
+using TheatreProject.ShoppingCartAPI.Validators;
 
 namespace TheatreProject.ShoppingCartAPI.Extensions;
 
@@ -20,6 +23,10 @@ public static class ApplicationServiceExtensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
         
         services.AddAutoMapper(typeof(AutoMapperProfile));
+        
+        services.AddScoped<ValidationFilter>();
+        services.AddFluentValidationAutoValidation();
+        services.AddValidatorsFromAssemblyContaining<CartDtoValidator>();
         
         services.AddScoped<ICartRepository, CartRepository>();
         

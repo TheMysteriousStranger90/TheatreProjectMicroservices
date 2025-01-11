@@ -25,6 +25,11 @@ public class CartController : Controller
         _logger = logger;
     }
 
+    public async Task<IActionResult> Index()
+    {
+        return View(await LoadCartByUser());
+    }
+
     [Authorize]
     public async Task<IActionResult> Details(Guid performanceId)
     {
@@ -91,14 +96,16 @@ public class CartController : Controller
                 return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
             }
 
-            var performanceResponse = await _performanceService.GetPerformanceByIdAsync<ResponseDto>(cartDetails.PerformanceId, "");
+            var performanceResponse =
+                await _performanceService.GetPerformanceByIdAsync<ResponseDto>(cartDetails.PerformanceId, "");
             if (!performanceResponse.IsSuccess)
             {
                 TempData["error"] = "Performance not found";
                 return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
             }
 
-            var performance = JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(performanceResponse.Result));
+            var performance =
+                JsonConvert.DeserializeObject<PerformanceDto>(Convert.ToString(performanceResponse.Result));
             decimal pricePerTicket = CalculateTicketPrice(performance.BasePrice, cartDetails.TicketType);
             var cartDto = new CartDto
             {
@@ -141,6 +148,7 @@ public class CartController : Controller
             return RedirectToAction("AddToCart", new { performanceId = cartDetails.PerformanceId });
         }
     }
+
     private decimal CalculateTicketPrice(decimal basePrice, TicketType ticketType)
     {
         return ticketType switch
@@ -150,5 +158,101 @@ public class CartController : Controller
             TicketType.VIP => basePrice * 1.5M,
             _ => basePrice
         };
+    }
+
+    private async Task<CartDto> LoadCartByUser()
+    {
+        try
+        {
+            var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return new CartDto
+                {
+                    CartHeader = new CartHeaderDto(),
+                    CartDetails = new List<CartDetailsDto>()
+                };
+            }
+
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _cartService.GetCartByUserIdAsync<ResponseDto>(userId, accessToken);
+
+            if (response?.IsSuccess == true && response.Result != null)
+            {
+                var cartDto = JsonConvert.DeserializeObject<CartDto>(Convert.ToString(response.Result));
+
+                if (cartDto?.CartHeader != null)
+                {
+                    cartDto.CartHeader.GrandTotal = 0;
+
+                    if (cartDto.CartDetails != null)
+                    {
+                        foreach (var detail in cartDto.CartDetails)
+                        {
+                            if (detail.Performance == null)
+                            {
+                                var performanceResponse = await _performanceService
+                                    .GetPerformanceByIdAsync<ResponseDto>(detail.PerformanceId, accessToken);
+
+                                if (performanceResponse?.IsSuccess == true)
+                                {
+                                    detail.Performance = JsonConvert
+                                        .DeserializeObject<
+                                            PerformanceDto>(Convert.ToString(performanceResponse.Result));
+                                }
+                            }
+
+                            cartDto.CartHeader.GrandTotal += (double)(detail.PricePerTicket * detail.Quantity);
+                        }
+
+                        cartDto.CartHeader.GrandTotal -= cartDto.CartHeader.DiscountTotal;
+                    }
+
+                    return cartDto;
+                }
+            }
+
+            return new CartDto
+            {
+                CartHeader = new CartHeaderDto(),
+                CartDetails = new List<CartDetailsDto>()
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading cart");
+            return new CartDto
+            {
+                CartHeader = new CartHeaderDto(),
+                CartDetails = new List<CartDetailsDto>()
+            };
+        }
+    }
+
+    public async Task<IActionResult> RemoveFromCart(Guid cartDetailsId)
+    {
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.RemoveFromCartAsync<ResponseDto>(cartDetailsId, accessToken);
+
+        if (response.IsSuccess)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View();
+    }
+
+    public async Task<IActionResult> ClearCart()
+    {
+        var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.ClearCartAsync<ResponseDto>(userId, accessToken);
+
+        if (response.IsSuccess)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View();
     }
 }
