@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TheatreProject.Identity.Filters;
 using TheatreProject.Identity.Models;
+using TheatreProject.Identity.Services.Interfaces;
 
 namespace TheatreProject.Identity.MainModule.Account
 {
@@ -24,8 +26,10 @@ namespace TheatreProject.Identity.MainModule.Account
     /// </summary>
     [SecurityHeaders]
     [AllowAnonymous]
+    [ServiceFilter(typeof(IpBlockActionFilter))]
     public class AccountController : Controller
     {
+        private readonly ILogger<AccountController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -34,6 +38,9 @@ namespace TheatreProject.Identity.MainModule.Account
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
+        
+        private readonly IRemoteHostService _remoteHostService;
+        private readonly IIpBlockingService _ipBlockingService;
 
         public AccountController(
             IIdentityServerInteractionService interaction,
@@ -42,7 +49,9 @@ namespace TheatreProject.Identity.MainModule.Account
             IEventService events,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole> roleInManager)
+            RoleManager<IdentityRole> roleInManager,
+            ILogger<AccountController> logger,
+            IRemoteHostService remoteHostService, IIpBlockingService ipBlockingService)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
@@ -54,6 +63,10 @@ namespace TheatreProject.Identity.MainModule.Account
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+            
+            _logger = logger;
+            _remoteHostService = remoteHostService ?? throw new ArgumentNullException(nameof(remoteHostService));
+            _ipBlockingService = ipBlockingService ?? throw new ArgumentNullException(nameof(ipBlockingService));
         }
 
         /// <summary>
@@ -81,6 +94,17 @@ namespace TheatreProject.Identity.MainModule.Account
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginInputModel model, string button)
         {
+            var clientIp = _remoteHostService.GetRemoteHostIpAddressUsingRemoteIpAddress(HttpContext) ??
+                           _remoteHostService.GetRemoteHostIpAddressUsingXForwardedFor(HttpContext) ??
+                           _remoteHostService.GetRemoteHostIpAddressUsingXRealIp(HttpContext);
+
+            if (clientIp != null && _ipBlockingService.IsBlocked(clientIp))
+            {
+                _logger.LogWarning("Blocked IP attempted to login: {ClientIp}", clientIp);
+                return StatusCode(StatusCodes.Status403Forbidden, "Your IP address is blocked.");
+            }
+            
+            
             // check if we are in the context of an authorization request
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
 
@@ -118,6 +142,8 @@ namespace TheatreProject.Identity.MainModule.Account
                 if (result.Succeeded)
                 {
                     var user = await _userManager.FindByNameAsync(model.Username);
+                    
+                    _logger.LogInformation("Logging in user: {Email} from IP: {ClientIp}", user.Email, clientIp);
                     await _events.RaiseAsync(
                         new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
 
@@ -225,6 +251,16 @@ namespace TheatreProject.Identity.MainModule.Account
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel? model, string returnUrl = null)
         {
+            var clientIp = _remoteHostService.GetRemoteHostIpAddressUsingRemoteIpAddress(HttpContext) ??
+                           _remoteHostService.GetRemoteHostIpAddressUsingXForwardedFor(HttpContext) ??
+                           _remoteHostService.GetRemoteHostIpAddressUsingXRealIp(HttpContext);
+
+            if (clientIp != null && _ipBlockingService.IsBlocked(clientIp))
+            {
+                _logger.LogWarning("Blocked IP attempted to register: {ClientIp}", clientIp);
+                return StatusCode(StatusCodes.Status403Forbidden, "Your IP address is blocked.");
+            }
+            
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
@@ -241,6 +277,7 @@ namespace TheatreProject.Identity.MainModule.Account
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    _logger.LogInformation("Registering new user: {Email} from IP: {ClientIp}", user.Email, clientIp);
                     // Ensure Customer role exists
                     if (!await _roleManager.RoleExistsAsync("Customer"))
                     {

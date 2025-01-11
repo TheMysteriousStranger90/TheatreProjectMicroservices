@@ -1,5 +1,6 @@
 using TheatreProject.Identity.Extensions;
 using TheatreProject.Identity.Initializer;
+using TheatreProject.Identity.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,9 @@ builder.Services.AddIdentityServices(builder.Configuration);
 
 // Configure the HTTP request pipeline.
 var app = builder.Build();
+
+app.UseMiddleware<IpBlockMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (!app.Environment.IsDevelopment())
 {
