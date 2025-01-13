@@ -129,28 +129,31 @@ public class CartController : Controller
     {
         try
         {
-            var couponCode = cartDto.CartHeader.CouponCode;
-            bool doesExist = await _couponService.DoesCouponExist(couponCode);
-
-            if (doesExist)
-            {
-                bool isSuccess = await _cartRepository.ApplyCoupon(cartDto.CartHeader.UserId, couponCode);
-                _response.Result = isSuccess;
-            }
-            else
+            if (string.IsNullOrEmpty(cartDto?.CartHeader?.CouponCode))
             {
                 _response.IsSuccess = false;
-                _response.ErrorMessages = new List<string> { "Coupon does not exist" };
-                _response.DisplayMessage = "Coupon does not exist";
+                _response.ErrorMessages = new List<string> { "Coupon code is required" };
+                return _response;
             }
+
+            var doesExist = await _couponService.DoesCouponExist(cartDto.CartHeader.CouponCode);
+            if (!doesExist)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { "Invalid coupon code" };
+                return _response;
+            }
+
+            var isSuccess = await _cartRepository.ApplyCoupon(cartDto.CartHeader.UserId, cartDto.CartHeader.CouponCode);
+            _response.Result = isSuccess;
+            return _response;
         }
         catch (Exception ex)
         {
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
+            return _response;
         }
-
-        return _response;
     }
 
     [HttpPost("RemoveCoupon")]

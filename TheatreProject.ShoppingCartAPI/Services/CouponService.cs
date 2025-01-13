@@ -49,19 +49,16 @@ public class CouponService : ICouponService
         try
         {
             var client = _httpClientFactory.CreateClient("CouponAPI");
-            var response = await client.GetAsync($"/api/coupon/exists/{couponCode}");
+            var response = await client.GetAsync($"api/coupon/exists/{couponCode}");
         
-            response.EnsureSuccessStatusCode();
-        
-            var apiContent = await response.Content.ReadAsStringAsync();
-            var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-        
-            if (resp?.IsSuccess == true)
+            if (response.IsSuccessStatusCode)
             {
-                return JsonConvert.DeserializeObject<bool>(Convert.ToString(resp.Result));
+                var apiContent = await response.Content.ReadAsStringAsync();
+                var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
+                return resp?.IsSuccess == true && JsonConvert.DeserializeObject<bool>(Convert.ToString(resp.Result));
             }
         
-            _logger.LogWarning("Coupon not found: {CouponCode}", couponCode);
+            _logger.LogWarning("Coupon service returned: {StatusCode}", response.StatusCode);
             return false;
         }
         catch (Exception ex)

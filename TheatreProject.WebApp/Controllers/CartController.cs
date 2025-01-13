@@ -354,67 +354,46 @@ public class CartController : Controller
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> ApplyCoupon([FromForm] string couponCode)
+    [ActionName("ApplyCoupon")]
+    public async Task<IActionResult> ApplyCoupon(CartDto cartDto)
     {
         try
         {
-            var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
-            var cartDto = new CartDto
-            {
-                CartHeader = new CartHeaderDto
-                {
-                    UserId = userId,
-                    CouponCode = couponCode
-                },
-                CartDetails = new List<CartDetailsDto>()
-            };
+            var currentCart = await LoadCartByUser();
+            currentCart.CartHeader.CouponCode = cartDto.CartHeader.CouponCode;
 
-            var token = await HttpContext.GetTokenAsync("access_token");
-            var response = await _cartService.ApplyCoupon<ResponseDto>(cartDto, token);
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _cartService.ApplyCoupon<ResponseDto>(currentCart, accessToken);
 
             if (response.IsSuccess)
             {
                 TempData["success"] = "Coupon applied successfully";
-                return RedirectToAction(nameof(Index));
             }
-
-            TempData["error"] = response.DisplayMessage ?? "Failed to apply coupon";
-            return RedirectToAction(nameof(Index));
+            else
+            {
+                TempData["error"] = response.DisplayMessage ?? "Failed to apply coupon";
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error applying coupon");
             TempData["error"] = "An error occurred while applying the coupon";
-            return RedirectToAction(nameof(Index));
         }
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> RemoveCoupon()
+    [ActionName("RemoveCoupon")]
+    public async Task<IActionResult> RemoveCoupon(CartDto cartDto)
     {
-        try
+        var accessToken = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.RemoveCoupon<ResponseDto>(cartDto.CartHeader.UserId, accessToken);
+
+        if (response != null && response.IsSuccess)
         {
-            var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
-            var token = await HttpContext.GetTokenAsync("access_token");
-            var response = await _cartService.RemoveCoupon<ResponseDto>(userId, token);
-
-            if (response.IsSuccess)
-            {
-                TempData["success"] = "Coupon removed successfully";
-                return RedirectToAction(nameof(Index));
-            }
-
-            TempData["error"] = "Failed to remove coupon";
             return RedirectToAction(nameof(Index));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing coupon");
-            TempData["error"] = "An error occurred while removing the coupon";
-            return RedirectToAction(nameof(Index));
-        }
+        return View();
     }
 
     [HttpPost]
