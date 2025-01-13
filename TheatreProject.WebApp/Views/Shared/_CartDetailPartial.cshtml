@@ -1,0 +1,56 @@
+﻿@model TheatreProject.WebApp.Models.DTOs.CartDetailsDto
+
+<div class="modal-header">
+    <h5 class="modal-title">Ticket Details</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    @if (Model?.Performance != null)
+    {
+        <div class="card">
+            <img src="@Model.Performance.ImageUrl" class="card-img-top" alt="@Model.Performance.Name">
+            <div class="card-body">
+                <h5 class="card-title">@Model.Performance.Name</h5>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="far fa-calendar-alt"></i> 
+                        @Model.Performance.ShowDateTime.ToString("dddd, MMM dd, yyyy HH:mm")
+                    </small>
+                </p>
+                <div class="mb-3">
+                    <h6>Venue Details:</h6>
+                    <p class="mb-1">@Model.Performance.TheatreName</p>
+                    <p class="mb-1">@Model.Performance.Address</p>
+                    <p class="mb-0">@Model.Performance.City</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Ticket Information:</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Type:</strong> <span class="badge bg-primary">@Model.TicketType</span></li>
+                        <li><strong>Quantity:</strong> @Model.Quantity</li>
+                        <li><strong>Seats:</strong> @Model.SeatNumbers</li>
+                        <li><strong>Price per ticket:</strong> @Model.PricePerTicket.ToString("C")</li>
+                    </ul>
+                </div>
+                <div class="alert alert-info">
+                    <strong>Subtotal:</strong> @Model.SubTotal.ToString("C")
+                </div>
+            </div>
+            <div class="card-footer">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> 
+                    Performance Category: @Model.Performance.Category
+                </small>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i> Performance details not available
+        </div>
+    }
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</div>

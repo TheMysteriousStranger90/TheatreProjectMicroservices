@@ -12,16 +12,19 @@ namespace TheatreProject.WebApp.Controllers;
 public class CartController : Controller
 {
     private readonly ICartService _cartService;
+    private readonly ICouponService _couponService;
     private readonly IPerformanceService _performanceService;
     private readonly ILogger<CartController> _logger;
 
     public CartController(
         ICartService cartService,
         IPerformanceService performanceService,
+        ICouponService couponService,
         ILogger<CartController> logger)
     {
         _cartService = cartService;
         _performanceService = performanceService;
+        _couponService = couponService;
         _logger = logger;
     }
 
@@ -205,7 +208,20 @@ public class CartController : Controller
                             cartDto.CartHeader.GrandTotal += (double)(detail.PricePerTicket * detail.Quantity);
                         }
 
-                        cartDto.CartHeader.GrandTotal -= cartDto.CartHeader.DiscountTotal;
+                        // Get and apply coupon after calculating grand total
+                        if (!string.IsNullOrEmpty(cartDto.CartHeader.CouponCode))
+                        {
+                            var coupon =
+                                await _couponService.GetCoupon<ResponseDto>(cartDto.CartHeader.CouponCode, accessToken);
+                            if (coupon != null && coupon.IsSuccess)
+                            {
+                                var couponObj =
+                                    JsonConvert.DeserializeObject<CouponDto>(Convert.ToString(coupon.Result));
+                                cartDto.CartHeader.DiscountTotal = couponObj.DiscountAmount;
+                                // Apply discount after grand total calculation
+                                cartDto.CartHeader.GrandTotal -= cartDto.CartHeader.DiscountTotal;
+                            }
+                        }
                     }
 
                     return cartDto;
@@ -254,5 +270,171 @@ public class CartController : Controller
         }
 
         return View();
+    }
+
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> UpdateQuantity(Guid cartDetailId, int quantity)
+    {
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.UpdateQuantityAsync<ResponseDto>(cartDetailId, quantity, token);
+
+        if (response.IsSuccess)
+        {
+            TempData["success"] = "Quantity updated successfully";
+            return RedirectToAction(nameof(Index));
+        }
+
+        TempData["error"] = "Failed to update quantity";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ValidateSeats(Guid performanceId, string seats)
+    {
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.ValidateSeatsAsync<ResponseDto>(performanceId, seats, token);
+
+        return Json(new { isValid = response.IsSuccess });
+    }
+
+    [Authorize]
+    public async Task<IActionResult> GetCartStatus()
+    {
+        var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.GetCartStatusAsync<ResponseDto>(userId, token);
+
+        return Json(response.Result);
+    }
+
+    [Authorize]
+    public async Task<IActionResult> CalculateTotal()
+    {
+        var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.CalculateTotalAsync<ResponseDto>(userId, token);
+
+        return Json(new { total = response.Result });
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> SaveForLater()
+    {
+        var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.SaveCartForLaterAsync<ResponseDto>(userId, token);
+
+        if (response.IsSuccess)
+        {
+            TempData["success"] = "Cart saved for later";
+            return RedirectToAction(nameof(Index));
+        }
+
+        TempData["error"] = "Failed to save cart";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize]
+    public async Task<IActionResult> GetCartDetail(Guid cartDetailId)
+    {
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.GetCartDetailAsync<ResponseDto>(cartDetailId, token);
+
+        if (response.IsSuccess)
+        {
+            var detail = JsonConvert.DeserializeObject<CartDetailsDto>(Convert.ToString(response.Result));
+            return PartialView("_CartDetailPartial", detail);
+        }
+
+        return NotFound();
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ApplyCoupon([FromForm] string couponCode)
+    {
+        try
+        {
+            var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            var cartDto = new CartDto
+            {
+                CartHeader = new CartHeaderDto
+                {
+                    UserId = userId,
+                    CouponCode = couponCode
+                },
+                CartDetails = new List<CartDetailsDto>()
+            };
+
+            var token = await HttpContext.GetTokenAsync("access_token");
+            var response = await _cartService.ApplyCoupon<ResponseDto>(cartDto, token);
+
+            if (response.IsSuccess)
+            {
+                TempData["success"] = "Coupon applied successfully";
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["error"] = response.DisplayMessage ?? "Failed to apply coupon";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error applying coupon");
+            TempData["error"] = "An error occurred while applying the coupon";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> RemoveCoupon()
+    {
+        try
+        {
+            var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            var token = await HttpContext.GetTokenAsync("access_token");
+            var response = await _cartService.RemoveCoupon<ResponseDto>(userId, token);
+
+            if (response.IsSuccess)
+            {
+                TempData["success"] = "Coupon removed successfully";
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["error"] = "Failed to remove coupon";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing coupon");
+            TempData["error"] = "An error occurred while removing the coupon";
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ValidateCart()
+    {
+        var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.ValidateCartAsync<ResponseDto>(userId, token);
+
+        return Json(new { isValid = response.IsSuccess });
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ValidateCouponForCart(CartDto cartDto)
+    {
+        var token = await HttpContext.GetTokenAsync("access_token");
+        var response = await _cartService.ValidateCouponForCartAsync<ResponseDto>(cartDto, token);
+
+        return Json(response.Result);
     }
 }

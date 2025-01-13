@@ -4,7 +4,7 @@
 <div class="container py-5">
     @if (Model?.CartHeader != null && Model.CartDetails?.Any() == true)
     {
-        
+
         <form method="post">
             <input type="hidden" asp-for="CartHeader.UserId" />
             <input type="hidden" asp-for="CartHeader.Id" />
@@ -19,7 +19,7 @@
                             <i class="fas fa-trash"></i> Clear Cart
                         </a>
                         <a asp-controller="Performance" asp-action="Search" class="btn btn-outline-light btn-sm">
-                            <i class="fas fa-ticket-alt"></i> Continue Shopping
+                            <i class="fas fa-ticket-alt"></i> Continue
                         </a>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                                     <div class="text-end">
                                         <h5 class="text-danger mb-1">@item.PricePerTicket.ToString("C")</h5>
                                         <p class="text-muted mb-2">Quantity: @item.Quantity</p>
-                                        <a asp-action="RemoveFromCart" asp-route-cartDetailsId="@item.Id" 
+                                        <a asp-action="RemoveFromCart" asp-route-cartDetailsId="@item.Id"
                                            class="btn btn-outline-danger btn-sm">
                                             <i class="fas fa-trash"></i> Remove
                                         </a>
@@ -62,65 +62,71 @@
                         <hr class="my-4"/>
                     }
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            @if (!string.IsNullOrEmpty(TempData["Error"]?.ToString()))
-                            {
-                                <div class="alert alert-danger" role="alert">
-                                    <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
-                                </div>
-                            }
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h6 class="card-title">Apply Coupon</h6>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" name="CouponCode" 
-                                               value="@Model.CartHeader.CouponCode"
-                                               placeholder="Enter coupon code"/>
-                                        <button class="btn btn-outline-primary" type="submit" asp-action="ApplyCoupon">
-                                            Apply
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h6 class="card-title">Order Summary</h6>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <span>Subtotal:</span>
-                                        <span>@Model.CartHeader.GrandTotal.ToString("C")</span>
-                                    </div>
-                                    @if (Model.CartHeader.DiscountTotal > 0)
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">Apply Coupon</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    @if (!string.IsNullOrEmpty(TempData["Error"]?.ToString()))
                                     {
-                                        <div class="d-flex justify-content-between mb-2 text-success">
-                                            <span>Discount:</span>
-                                            <span>-@Model.CartHeader.DiscountTotal.ToString("C")</span>
+                                        <div class="alert alert-danger" role="alert">
+                                            <i class="fas fa-exclamation-circle"></i> Oops! Something went wrong:<br />
+                                            @TempData["Error"]
                                         </div>
                                     }
-                                    <hr/>
-                                    <div class="d-flex justify-content-between">
-                                        <h6 class="mb-0">Total:</h6>
-                                        <h6 class="mb-0 text-danger">
-                                            @((Model.CartHeader.GrandTotal - Model.CartHeader.DiscountTotal).ToString("C"))
-                                        </h6>
+                                    <span>Coupon:</span>
+                                    @if (string.IsNullOrEmpty(Model.CartHeader.CouponCode))
+                                    {
+                                        <input asp-for="CartHeader.CouponCode" />
+                                        <button type="submit" asp-action="ApplyCoupon" class="btn btn-outline-primary"> Apply </button>
+                                    }
+                                    else
+                                    {
+                                        <input asp-for="CartHeader.CouponCode" disabled />
+                                        <button type="submit" asp-action="RemoveCoupon" class="btn btn-outline-primary"> Remove </button>
+                                    }
+                                </div>
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">Order Summary</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>@Model.CartHeader.GrandTotal.ToString("C")</span>
+                                </div>
+                                @if (Model.CartHeader.DiscountTotal > 0)
+                                {
+                                    <div class="d-flex justify-content-between mb-2 text-success">
+                                        <span>Discount:</span>
+                                        <span>-@Model.CartHeader.DiscountTotal.ToString("C")</span>
                                     </div>
+                                }
+                                <hr/>
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-0">Total:</h6>
+                                    <h6 class="mb-0 text-danger">
+                                        @((Model.CartHeader.GrandTotal - Model.CartHeader.DiscountTotal).ToString("C"))
+                                    </h6>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="card-footer">
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a asp-action="Checkout" class="btn btn-danger shadow-sm">
-                            <i class="fas fa-shopping-cart me-2"></i>Proceed to Checkout
-                        </a>
+
+                    <div class="card-footer">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Checkout" class="btn btn-danger shadow-sm">
+                                <i class="fas fa-shopping-cart me-2"></i>Proceed to Checkout
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </form>
+        
     }
     else
     {
@@ -134,3 +140,24 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.coupon-form').on('submit', function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        console.error('Error:', xhr);
+                    }
+                });
+            });
+        });
+    </script>
+}
