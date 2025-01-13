@@ -35,8 +35,14 @@ public static class ApplicationServiceExtensions
 
         services.AddHttpClient("PerformanceAPI", u => u.BaseAddress =
             new Uri(configuration["ServiceUrls:PerformanceAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
-        services.AddHttpClient("CouponAPI", u => u.BaseAddress =
-            new Uri(configuration["ServiceUrls:CouponAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
+        
+        
+        services.AddHttpClient("CouponAPI", u => 
+        {
+            u.BaseAddress = new Uri(configuration["ServiceUrls:CouponAPI"]);
+            u.Timeout = TimeSpan.FromSeconds(30);
+        }).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
+
 
         return services;
     }

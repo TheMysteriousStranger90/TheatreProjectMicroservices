@@ -12,6 +12,7 @@ namespace TheatreProject.ShoppingCartAPI.Controllers;
 public class CartController : Controller
 {
     private readonly ICartRepository _cartRepository;
+    private readonly ILogger<CartController> _logger;
 
     //private readonly ICouponRepository _couponRepository;
     //private readonly IMessageBus _messageBus;
@@ -19,10 +20,12 @@ public class CartController : Controller
     protected ResponseDto _response;
 
     public CartController(ICartRepository cartRepository,
+        ILogger<CartController> logger,
         ICouponService couponService)
     {
         _cartRepository = cartRepository;
         _couponService = couponService;
+        _logger = logger;
         //_couponRepository = couponRepository;
         //_messageBus = messageBus;
         _response = new ResponseDto();
@@ -129,29 +132,35 @@ public class CartController : Controller
     {
         try
         {
-            if (string.IsNullOrEmpty(cartDto?.CartHeader?.CouponCode))
+            if (cartDto?.CartHeader?.CouponCode == null)
             {
                 _response.IsSuccess = false;
-                _response.ErrorMessages = new List<string> { "Coupon code is required" };
+                _response.ErrorMessages = new List<string> { "Invalid request data" };
                 return _response;
             }
 
+            _logger.LogInformation("Attempting to apply coupon: {Code}", cartDto.CartHeader.CouponCode);
             var doesExist = await _couponService.DoesCouponExist(cartDto.CartHeader.CouponCode);
+
             if (!doesExist)
             {
                 _response.IsSuccess = false;
-                _response.ErrorMessages = new List<string> { "Invalid coupon code" };
+                _response.ErrorMessages = new List<string> { "Coupon not found or service unavailable" };
                 return _response;
             }
 
-            var isSuccess = await _cartRepository.ApplyCoupon(cartDto.CartHeader.UserId, cartDto.CartHeader.CouponCode);
+            var isSuccess = await _cartRepository.ApplyCoupon(
+                cartDto.CartHeader.UserId, 
+                cartDto.CartHeader.CouponCode);
+            
             _response.Result = isSuccess;
             return _response;
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error applying coupon");
             _response.IsSuccess = false;
-            _response.ErrorMessages = new List<string> { ex.Message };
+            _response.ErrorMessages = new List<string> { "Internal server error" };
             return _response;
         }
     }

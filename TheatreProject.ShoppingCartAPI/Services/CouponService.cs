@@ -43,31 +43,52 @@ public class CouponService : ICouponService
             throw;
         }
     }
-    
+
     public async Task<bool> DoesCouponExist(string couponCode)
     {
         try
         {
+            _logger.LogInformation("Checking existence of coupon: {CouponCode}", couponCode);
+        
             var client = _httpClientFactory.CreateClient("CouponAPI");
             var response = await client.GetAsync($"api/coupon/exists/{couponCode}");
-        
-            if (response.IsSuccessStatusCode)
+
+            var apiContent = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug("Coupon API Response: {StatusCode}, Content: {Content}", 
+                response.StatusCode, apiContent);
+
+            if (!response.IsSuccessStatusCode)
             {
-                var apiContent = await response.Content.ReadAsStringAsync();
-                var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-                return resp?.IsSuccess == true && JsonConvert.DeserializeObject<bool>(Convert.ToString(resp.Result));
+                _logger.LogWarning("Coupon service returned error: {StatusCode}", response.StatusCode);
+                return false;
             }
-        
-            _logger.LogWarning("Coupon service returned: {StatusCode}", response.StatusCode);
+
+            var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
+            if (resp?.IsSuccess == true && resp.Result != null)
+            {
+                return Convert.ToBoolean(resp.Result);
+            }
+
+            _logger.LogWarning("Invalid response format or unsuccessful response from coupon service");
+            return false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request failed while checking coupon: {CouponCode}", couponCode);
+            return false;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize coupon response for: {CouponCode}", couponCode);
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking coupon existence: {CouponCode}", couponCode);
+            _logger.LogError(ex, "Unexpected error while checking coupon: {CouponCode}", couponCode);
             return false;
         }
     }
-    
+
     public async Task<bool> ValidateCoupon(string couponCode, decimal orderAmount, int ticketCount)
     {
         try
