@@ -1,0 +1,6 @@
+@TheatreProject.CouponAPI_HostAddress = http://localhost:5068
+
+GET {{TheatreProject.CouponAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

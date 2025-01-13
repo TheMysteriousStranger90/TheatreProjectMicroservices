@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.Identity", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.ShoppingCartAPI", "TheatreProject.ShoppingCartAPI\TheatreProject.ShoppingCartAPI.csproj", "{F3E8A0CF-E7D6-4A78-9E22-07998A66ABA2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.CouponAPI", "TheatreProject.CouponAPI\TheatreProject.CouponAPI.csproj", "{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{F3E8A0CF-E7D6-4A78-9E22-07998A66ABA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3E8A0CF-E7D6-4A78-9E22-07998A66ABA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3E8A0CF-E7D6-4A78-9E22-07998A66ABA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,6 +58,7 @@ Global
 		{28EB04C7-2980-43B3-A3E1-454BA5BDD20C} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 		{4B8562C7-292D-4555-BD09-9E3CFA9733F5} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 		{F3E8A0CF-E7D6-4A78-9E22-07998A66ABA2} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
+		{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27B913A9-389E-47EC-BBFF-1E6BEDD1A9F8}
