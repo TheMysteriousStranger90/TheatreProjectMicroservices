@@ -35,4 +35,42 @@ public class CouponService : ICouponService
             throw;
         }
     }
+    
+    public async Task<T> GetAllCoupons<T>(string token = null)
+    {
+        try
+        {
+            _logger.LogInformation("Getting all coupons");
+            return await _baseService.SendAsync<T>(new RequestDto
+            {
+                ApiType = ApiType.GET,
+                Url = $"{Const.CouponAPIBase}/api/coupon",
+                AccessToken = token
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all coupons");
+            throw;
+        }
+    }
+    
+    public async Task<T> DeleteCoupon<T>(Guid id, string token = null)
+    {
+        try
+        {
+            _logger.LogInformation("Deleting coupon: {Id}", id);
+            return await _baseService.SendAsync<T>(new RequestDto
+            {
+                ApiType = ApiType.DELETE,
+                Url = $"{Const.CouponAPIBase}/api/coupon/{id}",
+                AccessToken = token
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting coupon: {Id}", id);
+            throw;
+        }
+    }
 }

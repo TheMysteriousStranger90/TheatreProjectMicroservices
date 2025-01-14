@@ -1,11 +1,27 @@
 ﻿<ul class="navbar-nav">
     @if (User.Identity.IsAuthenticated)
     {
-        <li class="nav-item">
-            <a class="nav-link" href="#">Hello @User.Identity.Name</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" asp-action="Logout" asp-controller="Home">Logout</a>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+               data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user me-1"></i>Hello @User.Identity.Name
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="navbarDropdown">
+                @if (User.IsInRole("Administrator"))
+                {
+                    <li>
+                        <a class="dropdown-item" asp-controller="Coupon" asp-action="Index">
+                            <i class="fas fa-tags me-2"></i>Coupons
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                }
+                <li>
+                    <a class="dropdown-item" asp-controller="Home" asp-action="Logout">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
         </li>
     }
     else
@@ -15,3 +31,18 @@
         </li>
     }
 </ul>
+
+<style>
+    .dropdown-item:hover::after {
+        display: none;
+    }
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #dc3545;
+    }
+    
+    .nav-link.dropdown-toggle:after {
+        display: none;
+    }
+    
+</style>
