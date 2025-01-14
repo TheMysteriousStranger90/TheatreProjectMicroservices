@@ -175,4 +175,15 @@ public class CartService : ICartService
             AccessToken = token
         });
     }
+    
+    public async Task<T> Checkout<T>(CartHeaderDto cartHeader, string token = null)
+    {
+        return await _baseService.SendAsync<T>(new RequestDto()
+        {
+            ApiType = ApiType.POST,
+            Data = cartHeader,
+            Url = $"{Const.ShoppingCartAPIBase}/api/cart/Checkout",
+            AccessToken = token
+        });
+    }
 }

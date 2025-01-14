@@ -1,0 +1,183 @@
+﻿@model TheatreProject.WebApp.Models.DTOs.CartDto
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Model?.CartHeader != null && Model.CartDetails?.Any() == true)
+{
+    <form method="post" class="needs-validation" novalidate>
+        <input type="hidden" asp-for="CartHeader.UserId" />
+        <input type="hidden" asp-for="CartHeader.Id" />
+        <input type="hidden" asp-for="CartHeader.CouponCode" />
+        <input type="hidden" asp-for="CartHeader.DiscountTotal" />
+        <input type="hidden" asp-for="CartHeader.GrandTotal" />
+
+        <div class="container py-5">
+            <h2 class="mb-4 text-primary">
+                <i class="fas fa-shopping-cart"></i> Checkout
+            </h2>
+
+            <div class="row">
+                <!-- Customer Information -->
+                <div class="col-md-7">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="CartHeader.FirstName" class="form-label">First Name</label>
+                                    <input asp-for="CartHeader.FirstName" class="form-control" required />
+                                    <div class="invalid-feedback">Please enter your first name</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CartHeader.LastName" class="form-label">Last Name</label>
+                                    <input asp-for="CartHeader.LastName" class="form-control" required />
+                                    <div class="invalid-feedback">Please enter your last name</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CartHeader.Email" class="form-label">Email</label>
+                                    <input asp-for="CartHeader.Email" class="form-control" type="email" required />
+                                    <div class="invalid-feedback">Please enter a valid email</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CartHeader.Phone" class="form-label">Phone</label>
+                                    <input asp-for="CartHeader.Phone" class="form-control" required />
+                                    <div class="invalid-feedback">Please enter your phone number</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="card shadow-sm mt-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Payment Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label asp-for="CartHeader.CardNumber" class="form-label">Card Number</label>
+                                    <input asp-for="CartHeader.CardNumber" class="form-control" required />
+                                    <div class="invalid-feedback">Please enter your card number</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CartHeader.ExpiryMonthYear" class="form-label">Expiry (MM/YY)</label>
+                                    <input asp-for="CartHeader.ExpiryMonthYear" class="form-control" 
+                                           placeholder="MM/YY" required maxlength="5" />
+                                    <div class="invalid-feedback">Please enter expiry date</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="CartHeader.CVV" class="form-label">CVV</label>
+                                    <input asp-for="CartHeader.CVV" class="form-control" required maxlength="3" />
+                                    <div class="invalid-feedback">Please enter CVV</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-md-5">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var item in Model.CartDetails)
+                            {
+                                <div class="row mb-3">
+                                    <div class="col-8">
+                                        <h6 class="mb-0">@item.Performance.Name</h6>
+                                        <small class="text-muted">
+                                            @item.Performance.ShowDateTime.ToString("dd MMM yyyy HH:mm")
+                                        </small><br/>
+                                        <span class="badge bg-info">@item.TicketType</span>
+                                        <small class="text-muted">Seats: @item.SeatNumbers</small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <p class="mb-0">@item.PricePerTicket.ToString("C")</p>
+                                        <small class="text-muted">x @item.Quantity</small>
+                                    </div>
+                                </div>
+                            }
+                            <hr/>
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span>@Model.CartHeader.GrandTotal.ToString("C")</span>
+                            </div>
+                            @if (Model.CartHeader.DiscountTotal > 0)
+                            {
+                                <div class="d-flex justify-content-between text-success">
+                                    <span>Discount:</span>
+                                    <span>-@Model.CartHeader.DiscountTotal.ToString("C")</span>
+                                </div>
+                            }
+                            <hr/>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total:</span>
+                                <span class="text-primary">
+                                    @((Model.CartHeader.GrandTotal - Model.CartHeader.DiscountTotal).ToString("C"))
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-lock me-2"></i>Place Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+}
+else
+{
+    <div class="text-center py-5">
+        <h3>Your cart is empty</h3>
+        <p class="text-muted">Add some performances to your cart first</p>
+        <a asp-controller="Performance" asp-action="Search" class="btn btn-primary">
+            <i class="fas fa-ticket-alt me-2"></i>Browse Performances
+        </a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+
+        // Card number formatting
+        document.querySelector('[name="CartHeader.CardNumber"]').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '')
+            this.value = value.replace(/(\d{4})(?=\d)/g, '$1 ')
+        })
+
+        // Expiry date formatting
+        document.querySelector('[name="CartHeader.ExpiryMonthYear"]').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '')
+            if (value.length >= 2) {
+                value = value.substring(0,2) + '/' + value.substring(2)
+            }
+            this.value = value
+        })
+    </script>
+}
