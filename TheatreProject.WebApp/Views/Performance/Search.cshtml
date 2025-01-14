@@ -158,12 +158,15 @@
         else
         {
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+                @{
+                var defaultImage = "/images/icon-for-theatre.svg";
+                }
                 @foreach (var item in Model.Data)
                 {
                     <div class="col">
                         <div class="card h-100 shadow-sm hover-shadow transition-all">
                             <div class="position-relative">
-                                <img src="@item.ImageUrl" class="card-img-top" alt="@item.Name"
+                                <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? defaultImage : item.ImageUrl)" class="card-img-top" alt="@item.Name"
                                      style="height: 200px; object-fit: cover;">
                                 <div class="position-absolute top-0 end-0 p-2">
                                     <span class="badge bg-primary rounded-pill">
@@ -206,7 +209,7 @@
                                             </a>
                                             <form asp-action="Delete" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <input type="hidden" name="id" value="@item.Id"/>
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
