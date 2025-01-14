@@ -68,19 +68,37 @@
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label asp-for="CartHeader.CardNumber" class="form-label">Card Number</label>
-                                    <input asp-for="CartHeader.CardNumber" class="form-control" required />
-                                    <div class="invalid-feedback">Please enter your card number</div>
+                                    <div class="position-relative">
+                                        <input asp-for="CartHeader.CardNumber"
+                                               class="form-control"
+                                               required
+                                               id="cardNumber"
+                                               maxlength="19"
+                                               autocomplete="cc-number" />
+                                        <i class="card-brand-icon" id="cardBrandIcon"></i>
+                                    </div>
+                                    <div class="invalid-feedback" id="cardNumberError">Please enter a valid card number</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="CartHeader.ExpiryMonthYear" class="form-label">Expiry (MM/YY)</label>
-                                    <input asp-for="CartHeader.ExpiryMonthYear" class="form-control" 
-                                           placeholder="MM/YY" required maxlength="5" />
-                                    <div class="invalid-feedback">Please enter expiry date</div>
+                                    <input asp-for="CartHeader.ExpiryMonthYear"
+                                           class="form-control"
+                                           id="cardExpiry"
+                                           placeholder="MM/YY"
+                                           required
+                                           maxlength="5"
+                                           autocomplete="cc-exp" />
+                                    <div class="invalid-feedback" id="cardExpiryError">Please enter a valid expiry date</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="CartHeader.CVV" class="form-label">CVV</label>
-                                    <input asp-for="CartHeader.CVV" class="form-control" required maxlength="3" />
-                                    <div class="invalid-feedback">Please enter CVV</div>
+                                    <input asp-for="CartHeader.CVV"
+                                           class="form-control"
+                                           id="cardCvv"
+                                           required
+                                           maxlength="4"
+                                           autocomplete="cc-csc" />
+                                    <div class="invalid-feedback" id="cardCvvError">Please enter a valid CVV</div>
                                 </div>
                             </div>
                         </div>
@@ -153,35 +171,119 @@ else
     </div>
 }
 
+@section Styles {
+<style>
+    .card-brand-icon {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 24px;
+        color: #6c757d;
+    }
+
+    .form-control.is-card-invalid {
+        border-color: #dc3545;
+        padding-right: calc(1.5em + 0.75rem);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+</style>
+}
+
 @section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
-        (() => {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+        const stripe = Stripe('pk_test_51MTi62FcLOHghxDePnGLffsIETFm4xnE3xUi6t6HwtMKBH5zAnBVkib1nAJ4Y2ZfLo0TRIwCCtYBInc9vTO4E65w00fj0HuSwg'); // Replace with your Stripe publishable key
+        
+        const cardBrands = {
+            visa: 'fab fa-cc-visa',
+            mastercard: 'fab fa-cc-mastercard',
+            amex: 'fab fa-cc-amex',
+            discover: 'fab fa-cc-discover',
+            diners: 'fab fa-cc-diners-club',
+            jcb: 'fab fa-cc-jcb',
+            unknown: 'far fa-credit-card'
+        };
 
-        // Card number formatting
-        document.querySelector('[name="CartHeader.CardNumber"]').addEventListener('input', function(e) {
-            let value = this.value.replace(/\D/g, '')
-            this.value = value.replace(/(\d{4})(?=\d)/g, '$1 ')
-        })
+        function validateCardNumber(number) {
+            return stripe.validateCardNumber(number.replace(/\s/g, ''));
+        }
 
-        // Expiry date formatting
-        document.querySelector('[name="CartHeader.ExpiryMonthYear"]').addEventListener('input', function(e) {
-            let value = this.value.replace(/\D/g, '')
-            if (value.length >= 2) {
-                value = value.substring(0,2) + '/' + value.substring(2)
+        function validateExpiry(expiry) {
+            const [month, year] = expiry.split('/');
+            return stripe.validateExpiry(month, year);
+        }
+
+        function validateCVC(cvc) {
+            return stripe.validateCVC(cvc);
+        }
+
+        function detectCardBrand(number) {
+            const brand = stripe.cardType(number.replace(/\s/g, ''));
+            const iconClass = cardBrands[brand] || cardBrands.unknown;
+            document.getElementById('cardBrandIcon').className = `card-brand-icon ${iconClass}`;
+        }
+
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            this.value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+            detectCardBrand(value);
+            
+            if (value.length >= 13) {
+                if (!validateCardNumber(value)) {
+                    this.classList.add('is-card-invalid');
+                    document.getElementById('cardNumberError').textContent = 'Invalid card number';
+                } else {
+                    this.classList.remove('is-card-invalid');
+                }
             }
-            this.value = value
-        })
+        });
+
+        document.getElementById('cardExpiry').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0,2) + '/' + value.substring(2);
+            }
+            this.value = value;
+            
+            if (value.length === 5) {
+                if (!validateExpiry(value)) {
+                    this.classList.add('is-card-invalid');
+                    document.getElementById('cardExpiryError').textContent = 'Invalid expiry date';
+                } else {
+                    this.classList.remove('is-card-invalid');
+                }
+            }
+        });
+
+        document.getElementById('cardCvv').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            this.value = value;
+            
+            if (value.length >= 3) {
+                if (!validateCVC(value)) {
+                    this.classList.add('is-card-invalid');
+                    document.getElementById('cardCvvError').textContent = 'Invalid CVV';
+                } else {
+                    this.classList.remove('is-card-invalid');
+                }
+            }
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const cardNumber = document.getElementById('cardNumber').value;
+            const cardExpiry = document.getElementById('cardExpiry').value;
+            const cardCvv = document.getElementById('cardCvv').value;
+
+            if (!validateCardNumber(cardNumber) || 
+                !validateExpiry(cardExpiry) || 
+                !validateCVC(cardCvv)) {
+                e.preventDefault();
+                return false;
+            }
+        });
     </script>
 }
