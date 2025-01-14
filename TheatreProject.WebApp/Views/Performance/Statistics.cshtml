@@ -1,0 +1,105 @@
+﻿@using System.Globalization
+@model TheatreProject.WebApp.Models.DTOs.PerformanceStatisticsDto
+
+@{
+    ViewData["Title"] = "Performance Statistics";
+    var usdCulture = new CultureInfo("en-US");
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Performance Statistics
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <!-- Total Bookings -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card bg-primary text-white hover-lift">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-ticket-alt me-2"></i>Total Bookings
+                                    </h6>
+                                    <h2 class="mb-0">@Model.TotalBookings</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Revenue -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card bg-success text-white hover-lift">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-dollar-sign me-2"></i>Total Revenue
+                                    </h6>
+                                    <h2 class="mb-0">@Model.TotalRevenue.ToString("C", usdCulture)</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Seats -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card bg-warning text-dark hover-lift">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-chair me-2"></i>Available Seats
+                                    </h6>
+                                    <h2 class="mb-0">@Model.AvailableSeats</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Occupancy Rate -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card bg-danger text-white hover-lift">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-percentage me-2"></i>Occupancy Rate
+                                    </h6>
+                                    <h2 class="mb-0">@Model.OccupancyRate.ToString("F1")%</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mt-4">
+                        <h5>Occupancy Progress</h5>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
+                                 role="progressbar"
+                                 style="width: @Model.OccupancyRate%"
+                                 aria-valuenow="@Model.OccupancyRate"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                                @Model.OccupancyRate.ToString("F1")%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .hover-lift {
+            transition: transform 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+        }
+        .card {
+            overflow: hidden;
+        }
+        .card-body h2 {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+    </style>
+}
