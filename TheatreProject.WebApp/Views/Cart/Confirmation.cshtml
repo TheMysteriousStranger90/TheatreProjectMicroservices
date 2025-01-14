@@ -1,0 +1,61 @@
+﻿<div class="container py-5">
+    <div class="text-center mb-5">
+        <div class="animation-container mb-4">
+            <i class="fas fa-check-circle text-primary pulse-animation" style="font-size: 5rem;"></i>
+        </div>
+        <h1 class="display-4 slide-in">Thank You!</h1>
+        <p class="lead text-muted fade-in">Your ticket order has been confirmed</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4 gradient-card">
+                    <a asp-controller="Performance" asp-action="Search" class="btn btn-primary btn-hover-effect">
+                        <i class="fas fa-ticket-alt me-2"></i>Browse More Shows
+                    </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+    .animation-container {
+        animation: scale-in 0.5s ease-out;
+    }
+
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+
+    .slide-in {
+        animation: slideIn 1s ease-out;
+    }
+
+    .fade-in {
+        animation: fadeIn 1.5s ease-out;
+    }
+
+    .gradient-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        transition: transform 0.3s ease;
+    }
+
+    .gradient-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .btn-hover-effect {
+        transition: all 0.3s ease;
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,123,255,0.2);
+    }
+
+    .btn-hover-effect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+        background: linear-gradient(45deg, #0056b3, #004085);
+    }
+</style>
+}

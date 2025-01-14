@@ -308,4 +308,45 @@ public class CartController : Controller
         }
         return _response;
     }
+    
+    [HttpPost("Checkout")]
+    public async Task<ResponseDto> Checkout(CheckoutHeaderDto checkoutHeaderDto)
+    {
+        try
+        {
+            CartDto cartDto = await _cartRepository.GetCartByUserId(checkoutHeaderDto.UserId);
+
+            if (cartDto == null)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string>() { "Cart not found." };
+                return _response;
+            }
+
+            if (!string.IsNullOrEmpty(checkoutHeaderDto.CouponCode))
+            {
+                CouponDto coupon = await _couponService.GetCoupon(checkoutHeaderDto.CouponCode);
+
+                if (checkoutHeaderDto.DiscountTotal != (double)coupon.DiscountAmount)
+                {
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string>() { "Coupon Price has changed, please confirm" };
+                    _response.DisplayMessage = "Coupon Price has changed, please confirm";
+                    return _response;
+                }
+            }
+
+            checkoutHeaderDto.CartDetails = cartDto.CartDetails;
+            //checkoutHeaderDto.MessageCreated = DateTime.Now;
+
+            //await _messageBus.PublishMessage(checkoutHeaderDto, "checkoutmessagetopic");
+            await _cartRepository.ClearCart(checkoutHeaderDto.UserId);
+        }
+        catch (Exception ex)
+        {
+            _response.IsSuccess = false;
+            _response.ErrorMessages = new List<string>() { ex.ToString() };
+        }
+        return _response;
+    }
 }
