@@ -1,6 +1,6 @@
-@TheatreProject.ShoppingCartAPI_HostAddress = http://localhost:5039
+@TheatreProject.ShoppingCartAPI_HostAddress = http://localhost:5187
 
-GET {{TheatreProject.ShoppingCartAPI_HostAddress}}/weatherforecast/
+GET {{TheatreProject.ShoppingCartAPI_HostAddress}}/swagger/index.html
 Accept: application/json
 
 ###

@@ -1,6 +1,6 @@
 @TheatreProject.CouponAPI_HostAddress = http://localhost:5068
 
-GET {{TheatreProject.CouponAPI_HostAddress}}/weatherforecast/
+GET {{TheatreProject.CouponAPI_HostAddress}}/swagger/index.html
 Accept: application/json
 
 ###
