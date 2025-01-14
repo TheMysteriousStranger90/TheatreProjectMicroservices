@@ -171,7 +171,7 @@ public class CartController : Controller
             if (response?.IsSuccess == true)
             {
                 TempData["success"] = "Added to cart successfully";
-                return RedirectToAction("Search", "Performance");
+                return RedirectToAction("Index", "Cart");
             }
 
             TempData["error"] = response?.ErrorMessages?.FirstOrDefault() ?? "Failed to add to cart";

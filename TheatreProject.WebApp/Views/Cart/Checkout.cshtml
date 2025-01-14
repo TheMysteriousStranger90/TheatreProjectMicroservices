@@ -1,5 +1,9 @@
-﻿@model TheatreProject.WebApp.Models.DTOs.CartDto
+﻿@using System.Globalization
+@model TheatreProject.WebApp.Models.DTOs.CartDto
 
+@{
+    var usdCulture = new CultureInfo("en-US");
+}
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -102,7 +106,7 @@
                                         <small class="text-muted">Seats: @item.SeatNumbers</small>
                                     </div>
                                     <div class="col-4 text-end">
-                                        <p class="mb-0">@item.PricePerTicket.ToString("C")</p>
+                                        <p class="mb-0">@item.PricePerTicket.ToString("C", usdCulture)</p>
                                         <small class="text-muted">x @item.Quantity</small>
                                     </div>
                                 </div>
@@ -110,20 +114,20 @@
                             <hr/>
                             <div class="d-flex justify-content-between">
                                 <span>Subtotal:</span>
-                                <span>@Model.CartHeader.GrandTotal.ToString("C")</span>
+                                <span>@Model.CartHeader.GrandTotal.ToString("C", usdCulture)</span>
                             </div>
                             @if (Model.CartHeader.DiscountTotal > 0)
                             {
                                 <div class="d-flex justify-content-between text-success">
                                     <span>Discount:</span>
-                                    <span>-@Model.CartHeader.DiscountTotal.ToString("C")</span>
+                                    <span>-@Model.CartHeader.DiscountTotal.ToString("C", usdCulture)</span>
                                 </div>
                             }
                             <hr/>
                             <div class="d-flex justify-content-between fw-bold">
                                 <span>Total:</span>
                                 <span class="text-primary">
-                                    @((Model.CartHeader.GrandTotal - Model.CartHeader.DiscountTotal).ToString("C"))
+                                    @((Model.CartHeader.GrandTotal - Model.CartHeader.DiscountTotal).ToString("C", usdCulture))
                                 </span>
                             </div>
                         </div>

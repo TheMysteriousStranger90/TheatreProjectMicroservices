@@ -1,8 +1,10 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using System.Globalization
 @using TheatreProject.WebApp.Models.Enums
 @model TheatreProject.WebApp.Models.DTOs.PerformanceDto
 @{
     ViewData["Title"] = Model.Name;
+    var usdCulture = new CultureInfo("en-US");
 }
 
 <div class="container py-5">
@@ -65,7 +67,7 @@
         <div class="col-md-6" data-aos="fade-left">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="display-4 fw-bold text-gradient">@Model.Name</h1>
-                <div class="text-danger fs-2 fw-bold price-tag">@Model.BasePrice.ToString("C")</div>
+                <div class="text-danger fs-2 fw-bold price-tag"> @Model.BasePrice.ToString("C", usdCulture)</div>
             </div>
 
             <div class="mb-4 d-flex gap-2 flex-wrap">
