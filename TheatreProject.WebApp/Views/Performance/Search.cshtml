@@ -1,4 +1,5 @@
 ﻿@using TheatreProject.WebApp.Models.Enums
+@using System.Globalization
 @model PagedResponse<TheatreProject.WebApp.Models.DTOs.PerformanceDto>
 @{
     ViewData["Title"] = "Search Performances";
@@ -7,6 +8,7 @@
     var isDescending = !string.IsNullOrEmpty(isDescendingStr) && bool.TryParse(isDescendingStr, out var parsed) ? parsed : false;
     var pageSize = Context.Request.Query["PageSize"].ToString();
     var selectedCategory = Context.Request.Query["Category"].ToString();
+    var usdCulture = new CultureInfo("en-US");
 }
 
 <div class="container-fluid py-3">
@@ -181,7 +183,7 @@
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="text-danger fw-bold fs-5">
-                                        @item.BasePrice.ToString("C")
+                                        @item.BasePrice.ToString("C", usdCulture)
                                     </span>
                                     <small class="text-muted">
                                         <i class="far fa-calendar-alt me-1"></i>
@@ -205,7 +207,7 @@
                                             <form asp-action="Delete" method="post" class="d-inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </form>
