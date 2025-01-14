@@ -119,27 +119,19 @@ public class PerformanceController : ControllerBase
             if (performanceDto.Image != null)
             {
                 string fileName = Guid.NewGuid().ToString() + Path.GetExtension(performanceDto.Image.FileName);
-                string filePath = @"wwwroot\PerformanceImages\" + fileName;
+                string relativePath = "PerformanceImages/" + fileName;
+                string absolutePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
 
-                var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-                FileInfo file = new FileInfo(directoryLocation);
-                if (file.Exists)
-                {
-                    file.Delete();
-                }
+                Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
 
-                var filePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePathDirectory));
-
-                using (var fileStream = new FileStream(filePathDirectory, FileMode.Create))
+                using (var fileStream = new FileStream(absolutePath, FileMode.Create))
                 {
                     await performanceDto.Image.CopyToAsync(fileStream);
                 }
 
-                var baseUrl =
-                    $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
-                performanceDto.ImageUrl = baseUrl + "/PerformanceImages/" + fileName;
-                performanceDto.ImageLocalPath = filePath;
+                var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
+                performanceDto.ImageUrl = $"{baseUrl}/{relativePath}";
+                performanceDto.ImageLocalPath = "wwwroot/" + relativePath;
             }
 
             var result = await _repository.CreateUpdatePerformance(performanceDto);

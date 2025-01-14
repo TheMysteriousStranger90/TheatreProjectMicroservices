@@ -29,6 +29,9 @@ public class PerformanceRepository : IPerformanceRepository
                 performance.CreatedDate = DateTime.UtcNow;
                 performance.Status = PerformanceStatus.Scheduled;
                 performance.AvailableSeats = performance.Capacity;
+                performance.ImageUrl = performanceDto.ImageUrl;
+                performance.ImageLocalPath = performanceDto.ImageLocalPath;
+            
                 await _context.Performances.AddAsync(performance);
                 await _context.SaveChangesAsync();
                 return _mapper.Map<PerformanceDto>(performance);
