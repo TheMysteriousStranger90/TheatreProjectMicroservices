@@ -30,11 +30,14 @@ var usdCulture = new CultureInfo("en-US");
                 </div>
 
                 <div class="card-body">
+                    @{
+                    var defaultImage = "/images/icon-for-theatre.svg";
+                    }
                     @foreach (var item in Model.CartDetails)
                     {
                         <div class="row mb-4">
                             <div class="col-md-3">
-                                <img src="@item.Performance.ImageUrl" class="img-fluid rounded" alt="@item.Performance.Name"/>
+                                <img src="@(string.IsNullOrEmpty(item.Performance.ImageUrl) ? defaultImage : item.Performance.ImageUrl)" class="img-fluid rounded" alt="@item.Performance.Name"/>
                             </div>
                             <div class="col-md-9">
                                 <div class="d-flex justify-content-between align-items-start">
@@ -50,7 +53,8 @@ var usdCulture = new CultureInfo("en-US");
                                         </p>
                                     </div>
                                     <div class="text-end">
-                                        <h5 class="text-danger mb-1">@item.PricePerTicket.ToString("C", usdCulture)</h5>                                        <p class="text-muted mb-2">Quantity: @item.Quantity</p>
+                                        <h5 class="text-danger mb-1">@item.PricePerTicket.ToString("C", usdCulture)</h5>
+                                        <p class="text-muted mb-2">Quantity: @item.Quantity</p>
                                         <a asp-action="RemoveFromCart" asp-route-cartDetailsId="@item.Id"
                                            class="btn btn-outline-danger btn-sm">
                                             <i class="fas fa-trash"></i> Remove
@@ -74,23 +78,23 @@ var usdCulture = new CultureInfo("en-US");
                                     @if (!string.IsNullOrEmpty(TempData["Error"]?.ToString()))
                                     {
                                         <div class="alert alert-danger" role="alert">
-                                            <i class="fas fa-exclamation-circle"></i> Oops! Something went wrong:<br />
+                                            <i class="fas fa-exclamation-circle"></i> Oops! Something went wrong:<br/>
                                             @TempData["Error"]
                                         </div>
                                     }
                                     <span>Coupon:</span>
                                     @if (string.IsNullOrEmpty(Model.CartHeader.CouponCode))
                                     {
-                                        <input asp-for="CartHeader.CouponCode" />
+                                        <input asp-for="CartHeader.CouponCode"/>
                                         <button type="submit" asp-action="ApplyCoupon" class="btn btn-outline-primary"> Apply </button>
                                     }
                                     else
                                     {
-                                        <input asp-for="CartHeader.CouponCode" disabled />
+                                        <input asp-for="CartHeader.CouponCode" disabled/>
                                         <button type="submit" asp-action="RemoveCoupon" class="btn btn-outline-primary"> Remove </button>
                                     }
                                 </div>
-                            </div> 
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -103,10 +107,10 @@ var usdCulture = new CultureInfo("en-US");
                                 </div>
                                 @if (Model.CartHeader.DiscountTotal > 0)
                                 {
-                                <div class="d-flex justify-content-between mb-2 text-success">
-                                    <span>Discount:</span>
-                                    <span>-@Model.CartHeader.DiscountTotal.ToString("C", usdCulture)</span>
-                                </div>
+                                    <div class="d-flex justify-content-between mb-2 text-success">
+                                        <span>Discount:</span>
+                                        <span>-@Model.CartHeader.DiscountTotal.ToString("C", usdCulture)</span>
+                                    </div>
                                 }
                                 <hr/>
                                 <div class="d-flex justify-content-between">
