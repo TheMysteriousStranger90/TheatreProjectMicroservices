@@ -27,7 +27,7 @@ public class CartController : Controller
         _couponService = couponService;
         _logger = logger;
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> Checkout()
     {
@@ -55,7 +55,7 @@ public class CartController : Controller
             return View(cartDto);
         }
     }
-    
+
     public async Task<IActionResult> Confirmation()
     {
         return View();
@@ -217,48 +217,46 @@ public class CartController : Controller
             {
                 var cartDto = JsonConvert.DeserializeObject<CartDto>(Convert.ToString(response.Result));
 
-                if (cartDto?.CartHeader != null)
+                if (cartDto?.CartHeader != null && cartDto.CartDetails != null)
                 {
-                    cartDto.CartHeader.GrandTotal = 0;
-
-                    if (cartDto.CartDetails != null)
+                    decimal originalTotal = 0;
+                    foreach (var detail in cartDto.CartDetails)
                     {
-                        foreach (var detail in cartDto.CartDetails)
+                        if (detail.Performance == null)
                         {
-                            if (detail.Performance == null)
+                            var performanceResponse = await _performanceService
+                                .GetPerformanceByIdAsync<ResponseDto>(detail.PerformanceId, accessToken);
+
+                            if (performanceResponse?.IsSuccess == true)
                             {
-                                var performanceResponse = await _performanceService
-                                    .GetPerformanceByIdAsync<ResponseDto>(detail.PerformanceId, accessToken);
-
-                                if (performanceResponse?.IsSuccess == true)
-                                {
-                                    detail.Performance = JsonConvert
-                                        .DeserializeObject<
-                                            PerformanceDto>(Convert.ToString(performanceResponse.Result));
-                                }
+                                detail.Performance = JsonConvert.DeserializeObject<PerformanceDto>(
+                                    Convert.ToString(performanceResponse.Result));
                             }
-
-                            cartDto.CartHeader.GrandTotal += (double)(detail.PricePerTicket * detail.Quantity);
                         }
 
-                        // Get and apply coupon after calculating grand total
-                        if (!string.IsNullOrEmpty(cartDto.CartHeader.CouponCode))
+                        originalTotal += detail.PricePerTicket * detail.Quantity;
+                    }
+
+                    decimal discountAmount = 0;
+                    if (!string.IsNullOrEmpty(cartDto.CartHeader.CouponCode))
+                    {
+                        var coupon = await _couponService.GetCoupon<ResponseDto>(
+                            cartDto.CartHeader.CouponCode, accessToken);
+
+                        if (coupon != null && coupon.IsSuccess)
                         {
-                            var coupon =
-                                await _couponService.GetCoupon<ResponseDto>(cartDto.CartHeader.CouponCode, accessToken);
-                            if (coupon != null && coupon.IsSuccess)
-                            {
-                                var couponObj =
-                                    JsonConvert.DeserializeObject<CouponDto>(Convert.ToString(coupon.Result));
-                                cartDto.CartHeader.DiscountTotal = couponObj.DiscountAmount;
-                                // Apply discount after grand total calculation
-                                cartDto.CartHeader.GrandTotal -= cartDto.CartHeader.DiscountTotal;
-                            }
+                            var couponObj = JsonConvert.DeserializeObject<CouponDto>(
+                                Convert.ToString(coupon.Result));
+
+                            discountAmount = originalTotal * ((decimal)couponObj.DiscountAmount / 100);
+                            cartDto.CartHeader.DiscountTotal = (double)couponObj.DiscountAmount;
                         }
                     }
 
-                    return cartDto;
+                    cartDto.CartHeader.GrandTotal = (double)(originalTotal - discountAmount);
                 }
+
+                return cartDto;
             }
 
             return new CartDto
@@ -412,6 +410,7 @@ public class CartController : Controller
             _logger.LogError(ex, "Error applying coupon");
             TempData["error"] = "An error occurred while applying the coupon";
         }
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -426,6 +425,7 @@ public class CartController : Controller
         {
             return RedirectToAction(nameof(Index));
         }
+
         return View();
     }
 

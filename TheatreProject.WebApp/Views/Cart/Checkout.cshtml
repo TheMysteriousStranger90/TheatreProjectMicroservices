@@ -15,11 +15,11 @@
 @if (Model?.CartHeader != null && Model.CartDetails?.Any() == true)
 {
     <form method="post" class="needs-validation" novalidate>
-        <input type="hidden" asp-for="CartHeader.UserId" />
-        <input type="hidden" asp-for="CartHeader.Id" />
-        <input type="hidden" asp-for="CartHeader.CouponCode" />
-        <input type="hidden" asp-for="CartHeader.DiscountTotal" />
-        <input type="hidden" asp-for="CartHeader.GrandTotal" />
+        <input type="hidden" asp-for="CartHeader.UserId"/>
+        <input type="hidden" asp-for="CartHeader.Id"/>
+        <input type="hidden" asp-for="CartHeader.CouponCode"/>
+        <input type="hidden" asp-for="CartHeader.DiscountTotal"/>
+        <input type="hidden" asp-for="CartHeader.GrandTotal"/>
 
         <div class="container py-5">
             <h2 class="mb-4 text-primary">
@@ -37,22 +37,22 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label asp-for="CartHeader.FirstName" class="form-label">First Name</label>
-                                    <input asp-for="CartHeader.FirstName" class="form-control" required />
+                                    <input asp-for="CartHeader.FirstName" class="form-control" required/>
                                     <div class="invalid-feedback">Please enter your first name</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="CartHeader.LastName" class="form-label">Last Name</label>
-                                    <input asp-for="CartHeader.LastName" class="form-control" required />
+                                    <input asp-for="CartHeader.LastName" class="form-control" required/>
                                     <div class="invalid-feedback">Please enter your last name</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="CartHeader.Email" class="form-label">Email</label>
-                                    <input asp-for="CartHeader.Email" class="form-control" type="email" required />
+                                    <input asp-for="CartHeader.Email" class="form-control" type="email" required/>
                                     <div class="invalid-feedback">Please enter a valid email</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label asp-for="CartHeader.Phone" class="form-label">Phone</label>
-                                    <input asp-for="CartHeader.Phone" class="form-control" required />
+                                    <input asp-for="CartHeader.Phone" class="form-control" required/>
                                     <div class="invalid-feedback">Please enter your phone number</div>
                                 </div>
                             </div>
@@ -74,7 +74,7 @@
                                                required
                                                id="cardNumber"
                                                maxlength="19"
-                                               autocomplete="cc-number" />
+                                               autocomplete="cc-number"/>
                                         <i class="card-brand-icon" id="cardBrandIcon"></i>
                                     </div>
                                     <div class="invalid-feedback" id="cardNumberError">Please enter a valid card number</div>
@@ -87,7 +87,7 @@
                                            placeholder="MM/YY"
                                            required
                                            maxlength="5"
-                                           autocomplete="cc-exp" />
+                                           autocomplete="cc-exp"/>
                                     <div class="invalid-feedback" id="cardExpiryError">Please enter a valid expiry date</div>
                                 </div>
                                 <div class="col-md-6">
@@ -97,7 +97,7 @@
                                            id="cardCvv"
                                            required
                                            maxlength="4"
-                                           autocomplete="cc-csc" />
+                                           autocomplete="cc-csc"/>
                                     <div class="invalid-feedback" id="cardCvvError">Please enter a valid CVV</div>
                                 </div>
                             </div>
@@ -136,17 +136,17 @@
                             </div>
                             @if (Model.CartHeader.DiscountTotal > 0)
                             {
-                                <div class="d-flex justify-content-between text-success">
+                                <div class="d-flex justify-content-between mb-2 text-success">
                                     <span>Discount:</span>
-                                    <span>-@Model.CartHeader.DiscountTotal.ToString("C", usdCulture)</span>
+                                    <span>@Model.CartHeader.DiscountTotal.ToString("F2")%</span>
                                 </div>
                             }
                             <hr/>
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span>Total:</span>
-                                <span class="text-primary">
-                                    @((Model.CartHeader.GrandTotal - Model.CartHeader.DiscountTotal).ToString("C", usdCulture))
-                                </span>
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-0">Total:</h6>
+                                <h6 class="mb-0 text-danger">
+                                    @((Model.CartHeader.GrandTotal).ToString("C", usdCulture))
+                                </h6>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -172,7 +172,7 @@ else
 }
 
 @section Styles {
-<style>
+    <style>
     .card-brand-icon {
         position: absolute;
         right: 10px;
