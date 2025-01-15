@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TheatreProject.MessageBus;
 using TheatreProject.ShoppingCartAPI.Models.DTOs;
 using TheatreProject.ShoppingCartAPI.Repositories.Interfaces;
 using TheatreProject.ShoppingCartAPI.Services.Interfaces;
@@ -15,19 +16,20 @@ public class CartController : Controller
     private readonly ILogger<CartController> _logger;
 
     //private readonly ICouponRepository _couponRepository;
-    //private readonly IMessageBus _messageBus;
+    private readonly IMessageBus _messageBus;
     private readonly ICouponService _couponService;
     protected ResponseDto _response;
 
     public CartController(ICartRepository cartRepository,
         ILogger<CartController> logger,
+        IMessageBus messageBus,
         ICouponService couponService)
     {
         _cartRepository = cartRepository;
         _couponService = couponService;
         _logger = logger;
         //_couponRepository = couponRepository;
-        //_messageBus = messageBus;
+        _messageBus = messageBus;
         _response = new ResponseDto();
     }
 
@@ -337,7 +339,6 @@ public class CartController : Controller
             }
 
             checkoutHeaderDto.CartDetails = cartDto.CartDetails;
-            //checkoutHeaderDto.MessageCreated = DateTime.Now;
 
             //await _messageBus.PublishMessage(checkoutHeaderDto, "checkoutmessagetopic");
             await _cartRepository.ClearCart(checkoutHeaderDto.UserId);

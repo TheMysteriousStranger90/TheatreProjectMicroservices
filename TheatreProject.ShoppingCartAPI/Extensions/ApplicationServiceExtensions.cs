@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using TheatreProject.MessageBus;
 using TheatreProject.ShoppingCartAPI.Data;
 using TheatreProject.ShoppingCartAPI.Mapping;
 using TheatreProject.ShoppingCartAPI.Repositories;
@@ -32,6 +33,8 @@ public static class ApplicationServiceExtensions
         
         services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
         services.AddScoped<ICouponService, CouponService>();
+        
+        services.AddSingleton<IMessageBus, MessageBus.MessageBus>();
 
         services.AddHttpClient("PerformanceAPI", u => u.BaseAddress =
             new Uri(configuration["ServiceUrls:PerformanceAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();

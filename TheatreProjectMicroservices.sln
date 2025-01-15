@@ -27,6 +27,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.PerformanceA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.CouponAPI.Tests", "TheatreProject.CouponAPI.Tests\TheatreProject.CouponAPI.Tests.csproj", "{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration", "Integration", "{2DAD37F8-27EA-41EA-AFBD-BD3AE4C1FEDA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.MessageBus", "TheatreProject.MessageBus\TheatreProject.MessageBus.csproj", "{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +69,10 @@ Global
 		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,6 +88,8 @@ Global
 		{BDBFFBBC-A1C4-48C9-AFD9-612DE262A29F} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
 		{48195004-B4A0-4F39-BE0B-6B2DB461C0D0} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
 		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
+		{2DAD37F8-27EA-41EA-AFBD-BD3AE4C1FEDA} = {754D03CE-31C2-4987-9EB2-26638A5D4EC7}
+		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF} = {2DAD37F8-27EA-41EA-AFBD-BD3AE4C1FEDA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27B913A9-389E-47EC-BBFF-1E6BEDD1A9F8}
