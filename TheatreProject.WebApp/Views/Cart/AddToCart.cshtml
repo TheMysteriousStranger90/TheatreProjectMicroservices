@@ -86,7 +86,6 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // Initialize tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -99,25 +98,43 @@
             const seatsInput = $('input[name="SeatNumbers"]');
             const form = $('form');
 
-            function calculatePrice(type) {
+            function getPriceDetails(type) {
                 switch(parseInt(type)) {
-                    case @((int)TicketType.Student): return basePrice * 0.8;
-                    case @((int)TicketType.Senior): return basePrice * 0.85;
-                    case @((int)TicketType.VIP): return basePrice * 1.5;
-                    default: return basePrice;
+                    case @((int)TicketType.Student):
+                        return { price: basePrice * 0.8, discount: '20% Student Discount' };
+                    case @((int)TicketType.Senior):
+                        return { price: basePrice * 0.85, discount: '15% Senior Discount' };
+                    case @((int)TicketType.VIP):
+                        return { price: basePrice * 1.5, markup: '50% VIP Premium' };
+                    default:
+                        return { price: basePrice, type: 'Standard Price' };
                 }
             }
 
             function updatePrice() {
                 const quantity = parseInt(quantityInput.val()) || 0;
                 const ticketType = ticketTypeSelect.val();
-                const pricePerTicket = calculatePrice(ticketType);
-                const total = pricePerTicket * quantity;
+                const details = getPriceDetails(ticketType);
+                const total = details.price * quantity;
 
-                priceDisplay.text(total.toLocaleString('en-US', {
-                    style: 'currency',
-                    currency: 'USD'
-                }));
+                let priceHtml = `
+                    <div class="price-breakdown">
+                        <p class="mb-2">Base Price: <span class="text-muted">${basePrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span></p>
+                        ${details.discount ?
+                    `<p class="mb-2 text-primary">${details.discount}</p>` :
+                    details.markup ?
+                        `<p class="mb-2 text-danger">${details.markup}</p>` :
+                        `<p class="mb-2">${details.type}</p>`
+                }
+                        <p class="mb-2">Price per ticket: <span class="fw-bold">${details.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span></p>
+                        <hr>
+                        <h4 class="mb-0 ${details.discount ? 'text-primary' : details.markup ? 'text-danger' : ''}">
+                            Total: ${total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                        </h4>
+                    </div>
+                `;
+
+                priceDisplay.html(priceHtml);
             }
 
             function validateSeats(seats, quantity) {
@@ -145,12 +162,33 @@
                 return true;
             }
 
-            quantityInput.on('change', updatePrice);
-            ticketTypeSelect.on('change', updatePrice);
+            quantityInput.on('change input', updatePrice);
+            ticketTypeSelect.on('change', function() {
+                updatePrice();
+                $(this).removeClass('text-muted');
+            });
             form.on('submit', validateForm);
 
-            // Initial price update
             updatePrice();
         });
     </script>
+}
+
+@section Styles {
+    <style>
+        .price-breakdown {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .price-breakdown:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .price-breakdown p {
+            margin-bottom: 0.5rem;
+        }
+    </style>
 }
