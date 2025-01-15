@@ -44,6 +44,40 @@ public class CouponController : Controller
         }
     }
     
+    public IActionResult Create()
+    {
+        return View(new CouponDto());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(CouponDto model)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _couponService.CreateCoupon<ResponseDto>(model, accessToken);
+
+            if (response != null && response.IsSuccess)
+            {
+                TempData["Success"] = "Coupon created successfully";
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError("", response?.DisplayMessage ?? "Error creating coupon");
+            return View(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating coupon");
+            ModelState.AddModelError("", "Error creating coupon");
+            return View(model);
+        }
+    }
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id)

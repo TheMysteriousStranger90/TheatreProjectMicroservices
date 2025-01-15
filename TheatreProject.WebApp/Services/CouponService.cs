@@ -55,6 +55,26 @@ public class CouponService : ICouponService
         }
     }
     
+    public async Task<T> CreateCoupon<T>(CouponDto couponDto, string token = null)
+    {
+        try
+        {
+            _logger.LogInformation("Creating new coupon");
+            return await _baseService.SendAsync<T>(new RequestDto
+            {
+                ApiType = ApiType.POST,
+                Data = couponDto,
+                Url = $"{Const.CouponAPIBase}/api/coupon",
+                AccessToken = token
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating coupon");
+            throw;
+        }
+    }
+    
     public async Task<T> DeleteCoupon<T>(Guid id, string token = null)
     {
         try
