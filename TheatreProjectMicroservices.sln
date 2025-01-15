@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.Identity.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.PerformanceAPI.Tests", "TheatreProject.PerformanceAPI.Tests\TheatreProject.PerformanceAPI.Tests.csproj", "{48195004-B4A0-4F39-BE0B-6B2DB461C0D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.CouponAPI.Tests", "TheatreProject.CouponAPI.Tests\TheatreProject.CouponAPI.Tests.csproj", "{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{48195004-B4A0-4F39-BE0B-6B2DB461C0D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48195004-B4A0-4F39-BE0B-6B2DB461C0D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48195004-B4A0-4F39-BE0B-6B2DB461C0D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{4C7FE3D8-BBC3-4562-AD59-83CD14EE41A8} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 		{BDBFFBBC-A1C4-48C9-AFD9-612DE262A29F} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
 		{48195004-B4A0-4F39-BE0B-6B2DB461C0D0} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
+		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27B913A9-389E-47EC-BBFF-1E6BEDD1A9F8}
