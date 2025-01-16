@@ -1,0 +1,6 @@
+@TheatreProject.OrderAPI_HostAddress = http://localhost:5045
+
+GET {{TheatreProject.OrderAPI_HostAddress}}/swagger/index.html
+Accept: application/json
+
+###

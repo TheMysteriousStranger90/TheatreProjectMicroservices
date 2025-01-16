@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integration", "Integration"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.MessageBus", "TheatreProject.MessageBus\TheatreProject.MessageBus.csproj", "{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.OrderAPI", "TheatreProject.OrderAPI\TheatreProject.OrderAPI.csproj", "{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,6 +96,7 @@ Global
 		{2EBCA2E6-E71C-4F0B-817F-7365F61A268C} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
 		{2DAD37F8-27EA-41EA-AFBD-BD3AE4C1FEDA} = {754D03CE-31C2-4987-9EB2-26638A5D4EC7}
 		{B3FE00EE-19EA-4541-9AB9-BA7D9D99CDCF} = {2DAD37F8-27EA-41EA-AFBD-BD3AE4C1FEDA}
+		{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27B913A9-389E-47EC-BBFF-1E6BEDD1A9F8}
