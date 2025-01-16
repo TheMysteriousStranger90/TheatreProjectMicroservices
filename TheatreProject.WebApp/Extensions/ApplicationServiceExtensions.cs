@@ -11,15 +11,18 @@ public static class ApplicationServiceExtensions
         services.AddHttpClient<IPerformanceService, PerformanceService>();
         services.AddHttpClient<ICartService, CartService>();
         services.AddHttpClient<ICouponService, CouponService>();
+        services.AddHttpClient<IOrderService, OrderService>();
         
         Const.PerformanceAPIBase = configuration["ServiceUrls:PerformanceAPI"];
         Const.ShoppingCartAPIBase = configuration["ServiceUrls:ShoppingCartAPI"];
         Const.CouponAPIBase = configuration["ServiceUrls:CouponAPI"];
+        Const.OrderAPIBase = configuration["ServiceUrls:OrderAPI"];
         
         services.AddScoped<IBaseService, BaseService>();
         services.AddScoped<IPerformanceService, PerformanceService>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<ICouponService, CouponService>();
+        services.AddScoped<IOrderService, OrderService>();
         services.AddControllersWithViews();
 
         return services;

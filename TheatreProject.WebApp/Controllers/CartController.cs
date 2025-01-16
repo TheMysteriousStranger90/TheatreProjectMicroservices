@@ -15,16 +15,20 @@ public class CartController : Controller
     private readonly ICouponService _couponService;
     private readonly IPerformanceService _performanceService;
     private readonly ILogger<CartController> _logger;
+    
+    private readonly IOrderService _orderService;
 
     public CartController(
         ICartService cartService,
         IPerformanceService performanceService,
         ICouponService couponService,
+        IOrderService orderService,
         ILogger<CartController> logger)
     {
         _cartService = cartService;
         _performanceService = performanceService;
         _couponService = couponService;
+        _orderService = orderService;
         _logger = logger;
     }
 
