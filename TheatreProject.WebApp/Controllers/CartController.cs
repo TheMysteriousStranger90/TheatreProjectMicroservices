@@ -95,31 +95,32 @@ public class CartController : Controller
             return RedirectToAction(nameof(Checkout));
         }
     }
-
-    public async Task<IActionResult> Confirmation()
-    {
-        return View();
-    }
-
+    
     public async Task<IActionResult> Index()
     {
         return View(await LoadCartByUser());
     }
 
     [Authorize]
-    public async Task<IActionResult> Confirmation(Guid orderId)
+    [HttpGet]
+    public async Task<IActionResult> Confirmation(Guid? orderId = null)
     {
+        if (!orderId.HasValue)
+        {
+            return View();
+        }
+
         try
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var response = await _orderService.ValidatePaymentAsync<ResponseDto>(orderId, accessToken);
+            var response = await _orderService.ValidatePaymentAsync<ResponseDto>(orderId.Value, accessToken);
 
             if (response?.IsSuccess == true)
             {
                 var orderHeader = JsonConvert.DeserializeObject<OrderHeaderDto>(
                     Convert.ToString(response.Result));
 
-                if (orderHeader.PaymentStatus == true)
+                if (orderHeader.PaymentStatus)
                 {
                     await _cartService.ClearCartAsync<ResponseDto>(orderHeader.UserId, accessToken);
                     return View(orderId);
