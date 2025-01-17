@@ -1,0 +1,152 @@
+﻿@using TheatreProject.WebApp.Models.DTOs
+@model List<OrderHeaderDto>
+
+<div class="container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-shopping-bag me-2"></i>My Orders</h2>
+        <div class="d-flex gap-2">
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search orders...">
+                <button class="btn btn-outline-secondary" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <select class="form-select" id="orderFilter">
+                <option value="all">All Orders</option>
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="order-summary mb-4">
+        <div class="row g-2">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6>Total Orders</h6>
+                        <h3>@Model.Count()</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h6>Completed Orders</h6>
+                        <h3>@Model.Count(x => x.PaymentStatus)</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h6>Pending Orders</h6>
+                        <h3>@Model.Count(x => !x.PaymentStatus)</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-bag fa-3x mb-3 text-muted"></i>
+            <h4>No orders found</h4>
+            <p class="text-muted">Start shopping to see your orders here</p>
+            <a asp-controller="Performance" asp-action="Search" class="btn btn-primary">
+                Browse Performances
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row" id="ordersList">
+            @foreach (var order in Model.OrderByDescending(x => x.OrderTime))
+            {
+                <div class="col-12 mb-3 order-item" data-order-status="@(order.PaymentStatus ? "paid" : "pending")">
+                    <div class="card shadow-sm hover-effect">
+                        <div class="card-header bg-light">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-receipt me-2"></i>Order #@order.Id.ToString().Substring(0, 8)...
+                                    </h5>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <span class="text-muted me-3">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        @order.OrderTime.ToString("MMM dd, yyyy HH:mm")
+                                    </span>
+                                    @{
+                                        var statusClass = order.PaymentStatus ? "success" : "warning";
+                                        var statusText = order.PaymentStatus ? "Paid" : "Pending";
+                                    }
+                                    <span class="badge bg-@statusClass">
+                                        <i class="fas fa-circle me-1"></i>@statusText
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <p class="mb-2">
+                                        <strong>Total Amount:</strong>
+                                        <span class="ms-2 text-success">$@order.GrandTotal.ToString("0.00")</span>
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(order.CouponCode))
+                                    {
+                                        <p class="mb-2">
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-tag me-1"></i>@order.CouponCode
+                                            </span>
+                                            <span class="ms-2 text-muted">
+                                                Discount: $@order.DiscountTotal.ToString("0.00")
+                                            </span>
+                                        </p>
+                                    }
+                                </div>
+                                <div class="col-md-4 text-md-end">
+                                    <a asp-action="Details" asp-route-orderId="@order.Id"
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const orderFilter = document.getElementById('orderFilter');
+        const ordersList = document.getElementById('ordersList');
+
+        function filterOrders() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filterValue = orderFilter.value;
+
+            document.querySelectorAll('.order-item').forEach(item => {
+                const orderStatus = item.dataset.orderStatus;
+                const orderText = item.textContent.toLowerCase();
+
+                const matchesSearch = orderText.includes(searchTerm);
+                const matchesFilter = filterValue === 'all' || orderStatus === filterValue;
+
+                item.style.display = matchesSearch && matchesFilter ? 'block' : 'none';
+            });
+        }
+
+        searchInput.addEventListener('input', filterOrders);
+        orderFilter.addEventListener('change', filterOrders);
+    });
+</script>
