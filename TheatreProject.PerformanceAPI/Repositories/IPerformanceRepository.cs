@@ -15,4 +15,5 @@ public interface IPerformanceRepository
     Task<PerformanceStatistics> GetPerformanceStatistics(Guid id);
     Task<bool> UpdatePerformanceStatus(Guid id, PerformanceStatus status);
     Task<bool> IsPerformanceSoldOut(Guid id);
+    Task<bool> UpdatePerformanceSeats(Guid performanceId, int bookedSeats);
 }

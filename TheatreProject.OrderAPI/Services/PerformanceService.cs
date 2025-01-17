@@ -41,4 +41,25 @@ public class PerformanceService : IPerformanceService
             throw;
         }
     }
+    
+    public async Task<bool> UpdatePerformanceSeats(Guid performanceId, int bookedSeats)
+    {
+        try
+        {
+            var client = _httpClientFactory.CreateClient("PerformanceAPI");
+            var response = await client.PutAsync($"/api/performances/{performanceId}/seats?bookedSeats={bookedSeats}", null);
+        
+            response.EnsureSuccessStatusCode();
+        
+            var apiContent = await response.Content.ReadAsStringAsync();
+            var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
+        
+            return resp?.IsSuccess == true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating performance seats");
+            return false;
+        }
+    }
 }

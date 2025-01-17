@@ -245,4 +245,19 @@ public class PerformanceRepository : IPerformanceRepository
 
         return performance?.AvailableSeats == 0;
     }
+    
+    public async Task<bool> UpdatePerformanceSeats(Guid performanceId, int bookedSeats)
+    {
+        var performance = await _context.Performances.FindAsync(performanceId);
+        if (performance == null || performance.AvailableSeats < bookedSeats)
+            return false;
+
+        performance.AvailableSeats -= bookedSeats;
+        performance.TotalBookings += bookedSeats;
+        performance.Revenue += performance.BasePrice * bookedSeats;
+        performance.UpdatedDate = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

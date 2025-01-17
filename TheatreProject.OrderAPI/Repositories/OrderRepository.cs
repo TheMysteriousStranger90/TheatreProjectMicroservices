@@ -7,6 +7,7 @@ using TheatreProject.OrderAPI.Models;
 using TheatreProject.OrderAPI.Models.DTOs;
 using TheatreProject.OrderAPI.Models.Enums;
 using TheatreProject.OrderAPI.Repositories.Interfaces;
+using TheatreProject.OrderAPI.Services.Interfaces;
 
 namespace TheatreProject.OrderAPI.Repositories;
 
@@ -15,12 +16,14 @@ public class OrderRepository : IOrderRepository
     private readonly ApplicationDbContext _db;
     private readonly IMapper _mapper;
     private readonly ILogger<OrderRepository> _logger;
+    private readonly IPerformanceService _performanceService;
 
-    public OrderRepository(ApplicationDbContext db, IMapper mapper, ILogger<OrderRepository> logger)
+    public OrderRepository(ApplicationDbContext db, IMapper mapper, ILogger<OrderRepository> logger, IPerformanceService performanceService)
     {
         _db = db;
         _mapper = mapper;
         _logger = logger;
+        _performanceService = performanceService;
     }
 
     public async Task<IEnumerable<OrderHeader>> GetOrders(string userId)
@@ -167,7 +170,10 @@ public class OrderRepository : IOrderRepository
 
     public async Task<OrderHeader> ValidatePaymentSession(Guid orderHeaderId)
     {
-        var orderHeader = await _db.OrderHeaders.FirstOrDefaultAsync(o => o.Id == orderHeaderId);
+        var orderHeader = await _db.OrderHeaders
+            .Include(o => o.OrderDetails)
+            .FirstOrDefaultAsync(o => o.Id == orderHeaderId);
+        
         if (orderHeader == null) return null;
 
         var service = new SessionService();
@@ -181,6 +187,16 @@ public class OrderRepository : IOrderRepository
             orderHeader.PaymentIntentId = paymentIntent.Id;
             orderHeader.Status = OrderStatus.Paid;
             orderHeader.PaymentStatus = true;
+
+            // Update seats for each performance in the order
+            foreach (var detail in orderHeader.OrderDetails)
+            {
+                await _performanceService.UpdatePerformanceSeats(
+                    detail.PerformanceId, 
+                    detail.Quantity
+                );
+            }
+
             await _db.SaveChangesAsync();
         }
 

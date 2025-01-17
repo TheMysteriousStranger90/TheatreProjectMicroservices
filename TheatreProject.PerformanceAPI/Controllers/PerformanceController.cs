@@ -398,4 +398,25 @@ public class PerformanceController : ControllerBase
 
         return _response;
     }
+    
+    [HttpPut("{id}/seats")]
+    public async Task<ActionResult<ResponseDto>> UpdatePerformanceSeats(Guid id, [FromQuery] int bookedSeats)
+    {
+        try
+        {
+            var success = await _repository.UpdatePerformanceSeats(id, bookedSeats);
+            if (!success)
+                return BadRequest(new ResponseDto { IsSuccess = false, DisplayMessage = "Failed to update seats" });
+
+            return Ok(new ResponseDto { IsSuccess = true });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ResponseDto 
+            { 
+                IsSuccess = false, 
+                ErrorMessages = new List<string> { ex.Message } 
+            });
+        }
+    }
 }
