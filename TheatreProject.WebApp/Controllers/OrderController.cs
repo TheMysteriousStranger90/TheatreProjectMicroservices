@@ -44,6 +44,7 @@ public class OrderController : Controller
             _logger.LogError(ex, "Error getting orders");
             TempData["error"] = "Error retrieving orders";
         }
+
         return View(new List<OrderHeaderDto>());
     }
 
@@ -69,6 +70,7 @@ public class OrderController : Controller
             _logger.LogError(ex, "Error getting order details for ID: {Id}", orderId);
             TempData["error"] = "Error retrieving order details";
         }
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -95,6 +97,7 @@ public class OrderController : Controller
             _logger.LogError(ex, "Error cancelling order ID: {Id}", orderId);
             TempData["error"] = "Error cancelling order";
         }
+
         return RedirectToAction(nameof(Details), new { orderId });
     }
 }

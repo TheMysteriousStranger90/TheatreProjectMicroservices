@@ -61,6 +61,10 @@ public class OrderRepository : IOrderRepository
             orderHeaderDto.OrderTime = DateTime.Now;
             orderHeaderDto.CartTotalPerformances = cartDto.CartDetails?.Count() ?? 0;
             orderHeaderDto.PaymentStatus = false;
+
+            orderHeaderDto.FirstName = cartDto.CartHeader.Name;
+            orderHeaderDto.Email = cartDto.CartHeader.Email;
+            orderHeaderDto.Phone = cartDto.CartHeader.Phone;
             orderHeaderDto.GrandTotal = Math.Round(cartDto.CartDetails?.Sum(d => d.SubTotal) ?? 0, 2);
 
             var orderDetails = cartDto.CartDetails.Select(cd =>
@@ -68,7 +72,7 @@ public class OrderRepository : IOrderRepository
                 var detail = _mapper.Map<OrderDetails>(cd);
                 detail.Id = Guid.NewGuid();
                 detail.OrderHeaderId = orderHeaderDto.Id;
-                detail.PerformanceName = cd.PerformanceName;
+                detail.PerformanceName = cd.Performance?.Name ?? cd.Performance.Name ?? "Theatre Performance";
                 return detail;
             });
 
@@ -87,78 +91,77 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-public async Task<StripeRequestDto> CreatePaymentSession(StripeRequestDto stripeRequestDto)
-{
-    try
+    public async Task<StripeRequestDto> CreatePaymentSession(StripeRequestDto stripeRequestDto)
     {
-        _logger.LogInformation("Creating payment session for order {OrderId}", 
-            stripeRequestDto.OrderHeader.Id);
-
-        var options = new SessionCreateOptions
+        try
         {
-            PaymentMethodTypes = new List<string> { "card" },
-            LineItems = new List<SessionLineItemOptions>(),
-            Mode = "payment",
-            SuccessUrl = stripeRequestDto.ApprovedUrl,
-            CancelUrl = stripeRequestDto.CancelUrl
-        };
+            _logger.LogInformation("Creating payment session for order {OrderId}",
+                stripeRequestDto.OrderHeader.Id);
 
-        var totalDiscount = stripeRequestDto.OrderHeader.DiscountTotal;
-        var totalAmount = stripeRequestDto.OrderHeader.OrderDetails.Sum(d => d.SubTotal);
-        var discountPercentage = totalDiscount / totalAmount;
-
-        foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
-        {
-            var productName = !string.IsNullOrEmpty(item.PerformanceName)
-                ? item.PerformanceName
-                : "Theatre Ticket";
-
-            // Calculate discounted price
-            var originalPrice = item.PricePerTicket;
-            var discountedPrice = originalPrice * (1 - discountPercentage);
-            var unitAmount = (long)(discountedPrice * 100); // Convert to cents
-
-            _logger.LogInformation("Line item: {Name}, Original: {Original}, Discounted: {Discounted}", 
-                productName, originalPrice, discountedPrice);
-
-            var sessionLineItem = new SessionLineItemOptions
+            var options = new SessionCreateOptions
             {
-                PriceData = new SessionLineItemPriceDataOptions
-                {
-                    UnitAmount = unitAmount,
-                    Currency = "usd",
-                    ProductData = new SessionLineItemPriceDataProductDataOptions
-                    {
-                        Name = productName,
-                        Description = $"Seat(s): {item.SeatNumbers}"
-                    }
-                },
-                Quantity = item.Quantity
+                PaymentMethodTypes = new List<string> { "card" },
+                LineItems = new List<SessionLineItemOptions>(),
+                Mode = "payment",
+                SuccessUrl = stripeRequestDto.ApprovedUrl,
+                CancelUrl = stripeRequestDto.CancelUrl
             };
-            options.LineItems.Add(sessionLineItem);
+
+            var totalDiscount = stripeRequestDto.OrderHeader.DiscountTotal;
+            var totalAmount = stripeRequestDto.OrderHeader.OrderDetails.Sum(d => d.SubTotal);
+            var discountPercentage = totalDiscount / totalAmount;
+
+            foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
+            {
+                var productName = !string.IsNullOrEmpty(item.PerformanceName)
+                    ? item.PerformanceName
+                    : "Theatre Ticket";
+
+                var originalPrice = item.PricePerTicket;
+                var discountedPrice = originalPrice * (1 - discountPercentage);
+                var unitAmount = (long)(discountedPrice * 100);
+
+                _logger.LogInformation("Line item: {Name}, Original: {Original}, Discounted: {Discounted}",
+                    productName, originalPrice, discountedPrice);
+
+                var sessionLineItem = new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = unitAmount,
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = productName,
+                            Description = $"Seat(s): {item.SeatNumbers}"
+                        }
+                    },
+                    Quantity = item.Quantity
+                };
+                options.LineItems.Add(sessionLineItem);
+            }
+
+            var service = new SessionService();
+            Session session = service.Create(options);
+
+            var orderHeader = await GetOrder(stripeRequestDto.OrderHeader.Id);
+            if (orderHeader != null)
+            {
+                orderHeader.StripeSessionId = session.Id;
+                await _db.SaveChangesAsync();
+            }
+
+            stripeRequestDto.StripeSessionId = session.Id;
+            stripeRequestDto.StripeSessionUrl = session.Url;
+
+            return stripeRequestDto;
         }
-
-        var service = new SessionService();
-        Session session = service.Create(options);
-
-        var orderHeader = await GetOrder(stripeRequestDto.OrderHeader.Id);
-        if (orderHeader != null)
+        catch (Exception ex)
         {
-            orderHeader.StripeSessionId = session.Id;
-            await _db.SaveChangesAsync();
+            _logger.LogError(ex, "Error creating payment session");
+            throw;
         }
-
-        stripeRequestDto.StripeSessionId = session.Id;
-        stripeRequestDto.StripeSessionUrl = session.Url;
-
-        return stripeRequestDto;
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error creating payment session");
-        throw;
-    }
-}
 
     public async Task<OrderHeader> ValidatePaymentSession(Guid orderHeaderId)
     {

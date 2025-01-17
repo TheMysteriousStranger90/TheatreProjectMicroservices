@@ -14,4 +14,8 @@ public class CartHeaderDto
     public string? CardNumber { get; set; }
     public string? CVV { get; set; }
     public string? ExpiryMonthYear { get; set; }
+
+    public string Name => string.Format("{0} {1}",
+        FirstName ?? string.Empty,
+        LastName ?? string.Empty).Trim();
 }

@@ -7,5 +7,8 @@ public class CartHeaderDto
     public string? CouponCode { get; set; }
     public double DiscountTotal { get; set; }
     public double GrandTotal { get; set; }
+
     public string? Email { get; set; }
+    public string? Name { get; set; }
+    public string? Phone { get; set; }
 }

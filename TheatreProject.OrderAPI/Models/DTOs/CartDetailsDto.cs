@@ -8,7 +8,7 @@ public class CartDetailsDto
     public Guid CartHeaderId { get; set; }
     public CartHeaderDto? CartHeader { get; set; }
     public Guid PerformanceId { get; set; }
-    public string? PerformanceName { get; set; }
+    public PerformanceDto? Performance { get; set; }
     public string SeatNumbers { get; set; }
     public TicketType TicketType { get; set; }
     public int Quantity { get; set; }

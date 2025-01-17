@@ -16,9 +16,8 @@ public class OrderHeaderDto
     public string? CVV { get; set; }
     public string? ExpiryMonthYear { get; set; }
     public int CartTotalPerformances { get; set; }
-    public IEnumerable<OrderDetails> OrderDetails { get; set; }
+    public IEnumerable<OrderDetailsDto> OrderDetails { get; set; }
     public bool PaymentStatus { get; set; }
-    
     public string? PaymentIntentId { get; set; }
     public string? StripeSessionId { get; set; }
 }
