@@ -81,16 +81,27 @@ public class OrderController : Controller
         try
         {
             var token = await HttpContext.GetTokenAsync("access_token");
+            if (string.IsNullOrEmpty(token))
+            {
+                TempData["error"] = "Authentication token not found";
+                return RedirectToAction(nameof(Details), new { orderId });
+            }
+
+            _logger.LogInformation("Attempting to cancel order: {OrderId}", orderId);
+
             var response = await _orderService.UpdateOrderStatusAsync<ResponseDto>(
                 orderId, "Cancelled", token);
 
             if (response != null && response.IsSuccess)
             {
                 TempData["success"] = "Order cancelled successfully";
-                return RedirectToAction(nameof(Details), new { orderId });
             }
-
-            TempData["error"] = response?.DisplayMessage ?? "Error cancelling order";
+            else
+            {
+                TempData["error"] = response?.DisplayMessage ?? "Error cancelling order";
+                _logger.LogWarning("Failed to cancel order: {OrderId}, Response: {@Response}",
+                    orderId, response);
+            }
         }
         catch (Exception ex)
         {

@@ -1,4 +1,6 @@
-﻿@using TheatreProject.WebApp.Models.DTOs
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using TheatreProject.WebApp.Models.DTOs
+@using TheatreProject.WebApp.Models.Enums
 @model List<OrderHeaderDto>
 
 <div class="container p-4">
@@ -13,35 +15,45 @@
             </div>
             <select class="form-select" id="orderFilter">
                 <option value="all">All Orders</option>
-                <option value="pending">Pending</option>
-                <option value="paid">Paid</option>
+                <option value="@OrderStatus.Pending">Pending</option>
+                <option value="@OrderStatus.Paid">Paid</option>
+                <option value="@OrderStatus.Cancelled">Cancelled</option>
+                <option value="@OrderStatus.Refunded">Refunded</option>
             </select>
         </div>
     </div>
 
     <div class="order-summary mb-4">
         <div class="row g-2">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white animate-card">
                     <div class="card-body">
                         <h6>Total Orders</h6>
                         <h3>@Model.Count()</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white">
+            <div class="col-md-3">
+                <div class="card bg-success text-white animate-card">
                     <div class="card-body">
-                        <h6>Completed Orders</h6>
-                        <h3>@Model.Count(x => x.PaymentStatus)</h3>
+                        <h6>Completed</h6>
+                        <h3>@Model.Count(x => x.Status == OrderStatus.Paid)</h3>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-warning text-white">
+            <div class="col-md-3">
+                <div class="card bg-warning text-white animate-card">
                     <div class="card-body">
-                        <h6>Pending Orders</h6>
-                        <h3>@Model.Count(x => !x.PaymentStatus)</h3>
+                        <h6>Pending</h6>
+                        <h3>@Model.Count(x => x.Status == OrderStatus.Pending)</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white animate-card">
+                    <div class="card-body">
+                        <h6>Cancelled</h6>
+                        <h3>@Model.Count(x => x.Status == OrderStatus.Cancelled)</h3>
                     </div>
                 </div>
             </div>
@@ -64,7 +76,7 @@
         <div class="row" id="ordersList">
             @foreach (var order in Model.OrderByDescending(x => x.OrderTime))
             {
-                <div class="col-12 mb-3 order-item" data-order-status="@(order.PaymentStatus ? "paid" : "pending")">
+                <div class="col-12 mb-3 order-item" data-order-status="@order.Status.ToString().ToLower()">
                     <div class="card shadow-sm hover-effect">
                         <div class="card-header bg-light">
                             <div class="row align-items-center">
@@ -79,11 +91,16 @@
                                         @order.OrderTime.ToString("MMM dd, yyyy HH:mm")
                                     </span>
                                     @{
-                                        var statusClass = order.PaymentStatus ? "success" : "warning";
-                                        var statusText = order.PaymentStatus ? "Paid" : "Pending";
+                                        var (statusClass, statusIcon, statusText) = order.Status switch
+                                        {
+                                            OrderStatus.Paid => ("success", "check-circle", "Paid"),
+                                            OrderStatus.Cancelled => ("danger", "times-circle", "Cancelled"),
+                                            OrderStatus.Refunded => ("info", "undo", "Refunded"),
+                                            _ => ("warning", "clock", "Pending")
+                                        };
                                     }
                                     <span class="badge bg-@statusClass">
-                                        <i class="fas fa-circle me-1"></i>@statusText
+                                        <i class="fas fa-@statusIcon me-1"></i>@statusText
                                     </span>
                                 </div>
                             </div>
@@ -123,6 +140,18 @@
 </div>
 
 <style>
+    .hover-effect {
+        transition: all 0.3s ease;
+    }
+
+    .hover-effect:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+
+    .animate-card {
+        animation: fadeInUp 0.5s ease-out;
+    }
 </style>
 
 <script>
@@ -133,7 +162,7 @@
 
         function filterOrders() {
             const searchTerm = searchInput.value.toLowerCase();
-            const filterValue = orderFilter.value;
+            const filterValue = orderFilter.value.toLowerCase();
 
             document.querySelectorAll('.order-item').forEach(item => {
                 const orderStatus = item.dataset.orderStatus;

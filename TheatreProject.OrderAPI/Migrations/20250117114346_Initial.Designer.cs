@@ -12,7 +12,7 @@ using TheatreProject.OrderAPI.Data;
 namespace TheatreProject.OrderAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250116051155_Initial")]
+    [Migration("20250117114346_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -110,6 +110,9 @@ namespace TheatreProject.OrderAPI.Migrations
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<string>("StripeSessionId")
                         .HasColumnType("nvarchar(max)");

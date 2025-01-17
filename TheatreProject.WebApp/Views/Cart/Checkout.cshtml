@@ -221,11 +221,76 @@ else
             return stripe.validateCVC(cvc);
         }
 
+        function isValidEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+[\\x40][a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            
+            const atIndex = email.indexOf('\x40');
+            if (atIndex === -1) return false;
+
+            const domainPart = email.substring(atIndex + 1);
+            const hasValidDomain = domainPart.indexOf('.') !== -1;
+            const hasValidLength = email.length >= 5 && email.length <= 254;
+            const hasValidStart = /^[a-zA-Z0-9]/.test(email);
+
+            return emailPattern.test(email) && hasValidDomain && hasValidLength && hasValidStart;
+        }
+
+        function formatPhoneNumber(value) {
+            if (!value) return value;
+            const phoneNumber = value.replace(/[^\d]/g, '');
+            if (phoneNumber.length < 4) return phoneNumber;
+            if (phoneNumber.length < 7) {
+                return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+            }
+            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+        }
+
         function detectCardBrand(number) {
             const brand = stripe.cardType(number.replace(/\s/g, ''));
             const iconClass = cardBrands[brand] || cardBrands.unknown;
             document.getElementById('cardBrandIcon').className = `card-brand-icon ${iconClass}`;
         }
+
+        document.getElementById('CartHeader_Email').addEventListener('input', function(e) {
+            const errorElement = this.nextElementSibling;
+            const value = this.value.trim();
+
+            if (value.length > 0) {
+                if (value.indexOf('\x40') === -1) {
+                    this.classList.add('is-card-invalid');
+                    errorElement.textContent = 'Email must contain symbol';
+                } else if (value.substring(value.indexOf('\x40') + 1).indexOf('.') === -1) {
+                    this.classList.add('is-card-invalid');
+                    errorElement.textContent = 'Email must have a valid domain (e.g., .com, .net)';
+                } else if (!isValidEmail(value)) {
+                    this.classList.add('is-card-invalid');
+                    errorElement.textContent = 'Please enter a valid email address';
+                } else {
+                    this.classList.remove('is-card-invalid');
+                    errorElement.textContent = '';
+                }
+            }
+        });
+
+        document.getElementById('CartHeader_Phone').addEventListener('input', function(e) {
+            let value = this.value.replace(/\D/g, '');
+            const errorElement = this.nextElementSibling;
+
+            if (value.length > 10) {
+                value = value.slice(0, 10);
+            }
+
+            this.value = formatPhoneNumber(value);
+
+            if (value.length > 0) {
+                if (value.length !== 10) {
+                    this.classList.add('is-card-invalid');
+                    errorElement.textContent = 'Please enter a valid 10-digit phone number';
+                } else {
+                    this.classList.remove('is-card-invalid');
+                }
+            }
+        });
 
         document.getElementById('cardNumber').addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
@@ -241,28 +306,76 @@ else
                 }
             }
         });
+        
+        function isValidExpiryDate(month, year) {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear() % 100;
+            const currentMonth = currentDate.getMonth() + 1;
+
+            month = parseInt(month, 10);
+            year = parseInt(year, 10);
+
+            if (month < 1 || month > 12) return false;
+            if (year < currentYear || year > currentYear + 10) return false;
+            if (year === currentYear && month < currentMonth) return false;
+
+            return true;
+        }
 
         document.getElementById('cardExpiry').addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
+            const errorElement = document.getElementById('cardExpiryError');
+            
             if (value.length >= 2) {
-                value = value.substring(0,2) + '/' + value.substring(2);
+                const month = value.substring(0, 2);
+                const year = value.substring(2, 4);
+                if (month > 12) {
+                    value = '12' + year;
+                }
+
+                if (value.length > 2) {
+                    value = month + '/' + year;
+                }
             }
+
             this.value = value;
             
             if (value.length === 5) {
-                if (!validateExpiry(value)) {
+                const [month, year] = value.split('/');
+
+                if (!isValidExpiryDate(month, year)) {
                     this.classList.add('is-card-invalid');
-                    document.getElementById('cardExpiryError').textContent = 'Invalid expiry date';
+                    if (parseInt(month) < 1 || parseInt(month) > 12) {
+                        errorElement.textContent = 'Invalid month';
+                    } else {
+                        errorElement.textContent = 'Card is expired or date is invalid';
+                    }
                 } else {
                     this.classList.remove('is-card-invalid');
+                    errorElement.textContent = 'Please enter a valid expiry date';
                 }
             }
         });
-
+        
+        document.getElementById('cardExpiry').addEventListener('keypress', function(e) {
+            if (this.value.length >= 5) {
+                e.preventDefault();
+            }
+        });
+        
         document.getElementById('cardCvv').addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
-            this.value = value;
             
+            const cardNumber = document.getElementById('cardNumber').value;
+            const cardType = stripe.cardType(cardNumber.replace(/\s/g, ''));
+            const maxLength = cardType === 'amex' ? 4 : 3;
+            
+            if (value.length > maxLength) {
+                value = value.substr(0, maxLength);
+            }
+
+            this.value = value;
+
             if (value.length >= 3) {
                 if (!validateCVC(value)) {
                     this.classList.add('is-card-invalid');
@@ -270,6 +383,16 @@ else
                 } else {
                     this.classList.remove('is-card-invalid');
                 }
+            }
+        });
+        
+        document.getElementById('cardCvv').addEventListener('keypress', function(e) {
+            const cardNumber = document.getElementById('cardNumber').value;
+            const cardType = stripe.cardType(cardNumber.replace(/\s/g, ''));
+            const maxLength = cardType === 'amex' ? 4 : 3;
+
+            if (this.value.length >= maxLength) {
+                e.preventDefault();
             }
         });
 

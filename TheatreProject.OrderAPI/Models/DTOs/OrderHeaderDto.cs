@@ -1,4 +1,6 @@
-﻿namespace TheatreProject.OrderAPI.Models.DTOs;
+﻿using TheatreProject.OrderAPI.Models.Enums;
+
+namespace TheatreProject.OrderAPI.Models.DTOs;
 
 public class OrderHeaderDto
 {
@@ -18,6 +20,7 @@ public class OrderHeaderDto
     public int CartTotalPerformances { get; set; }
     public IEnumerable<OrderDetailsDto> OrderDetails { get; set; }
     public bool PaymentStatus { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public string? PaymentIntentId { get; set; }
     public string? StripeSessionId { get; set; }
 }

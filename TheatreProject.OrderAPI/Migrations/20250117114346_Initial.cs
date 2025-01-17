@@ -30,6 +30,7 @@ namespace TheatreProject.OrderAPI.Migrations
                     ExpiryMonthYear = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CartTotalPerformances = table.Column<int>(type: "int", nullable: false),
                     PaymentStatus = table.Column<bool>(type: "bit", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     PaymentIntentId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StripeSessionId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },

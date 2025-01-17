@@ -5,6 +5,7 @@ using Stripe.Checkout;
 using TheatreProject.OrderAPI.Data;
 using TheatreProject.OrderAPI.Models;
 using TheatreProject.OrderAPI.Models.DTOs;
+using TheatreProject.OrderAPI.Models.Enums;
 using TheatreProject.OrderAPI.Repositories.Interfaces;
 
 namespace TheatreProject.OrderAPI.Repositories;
@@ -61,7 +62,7 @@ public class OrderRepository : IOrderRepository
             orderHeaderDto.OrderTime = DateTime.Now;
             orderHeaderDto.CartTotalPerformances = cartDto.CartDetails?.Count() ?? 0;
             orderHeaderDto.PaymentStatus = false;
-
+            orderHeaderDto.Status = OrderStatus.Pending;
             orderHeaderDto.FirstName = cartDto.CartHeader.Name;
             orderHeaderDto.Email = cartDto.CartHeader.Email;
             orderHeaderDto.Phone = cartDto.CartHeader.Phone;
@@ -95,9 +96,6 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            _logger.LogInformation("Creating payment session for order {OrderId}",
-                stripeRequestDto.OrderHeader.Id);
-
             var options = new SessionCreateOptions
             {
                 PaymentMethodTypes = new List<string> { "card" },
@@ -106,23 +104,27 @@ public class OrderRepository : IOrderRepository
                 SuccessUrl = stripeRequestDto.ApprovedUrl,
                 CancelUrl = stripeRequestDto.CancelUrl
             };
-
-            var totalDiscount = stripeRequestDto.OrderHeader.DiscountTotal;
-            var totalAmount = stripeRequestDto.OrderHeader.OrderDetails.Sum(d => d.SubTotal);
-            var discountPercentage = totalDiscount / totalAmount;
+            
+            double orderTotal = stripeRequestDto.OrderHeader.OrderDetails.Sum(item => item.SubTotal);
+            
+            double discountPercentage = !string.IsNullOrEmpty(stripeRequestDto.OrderHeader.CouponCode) ? 0.5 : 0;
+            double actualDiscountAmount = orderTotal * discountPercentage;
+            
+            stripeRequestDto.OrderHeader.DiscountTotal = actualDiscountAmount;
 
             foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
             {
                 var productName = !string.IsNullOrEmpty(item.PerformanceName)
                     ? item.PerformanceName
                     : "Theatre Ticket";
-
+                
                 var originalPrice = item.PricePerTicket;
                 var discountedPrice = originalPrice * (1 - discountPercentage);
                 var unitAmount = (long)(discountedPrice * 100);
 
-                _logger.LogInformation("Line item: {Name}, Original: {Original}, Discounted: {Discounted}",
-                    productName, originalPrice, discountedPrice);
+                _logger.LogInformation(
+                    "Item: {Name}, Original: ${Original:F2}, Discount: {DiscountPct}%, Final: ${Discounted:F2}",
+                    productName, originalPrice, discountPercentage * 100, discountedPrice);
 
                 var sessionLineItem = new SessionLineItemOptions
                 {
@@ -148,12 +150,12 @@ public class OrderRepository : IOrderRepository
             if (orderHeader != null)
             {
                 orderHeader.StripeSessionId = session.Id;
+                orderHeader.DiscountTotal = actualDiscountAmount;
                 await _db.SaveChangesAsync();
             }
 
             stripeRequestDto.StripeSessionId = session.Id;
             stripeRequestDto.StripeSessionUrl = session.Url;
-
             return stripeRequestDto;
         }
         catch (Exception ex)
@@ -177,6 +179,7 @@ public class OrderRepository : IOrderRepository
         if (paymentIntent.Status == "succeeded")
         {
             orderHeader.PaymentIntentId = paymentIntent.Id;
+            orderHeader.Status = OrderStatus.Paid;
             orderHeader.PaymentStatus = true;
             await _db.SaveChangesAsync();
         }
@@ -188,23 +191,41 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            var orderHeader = await _db.OrderHeaders.FindAsync(orderId);
+            var orderHeader = await _db.OrderHeaders
+                .Include(x => x.OrderDetails)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+            
             if (orderHeader == null) return false;
 
-            if (newStatus == "Cancelled" && !string.IsNullOrEmpty(orderHeader.PaymentIntentId))
+            if (Enum.TryParse<OrderStatus>(newStatus, out OrderStatus status))
             {
-                var options = new RefundCreateOptions
+                orderHeader.Status = status;
+
+                if (status == OrderStatus.Cancelled)
                 {
-                    PaymentIntent = orderHeader.PaymentIntentId,
-                    Reason = RefundReasons.RequestedByCustomer
-                };
+                    if (!string.IsNullOrEmpty(orderHeader.PaymentIntentId))
+                    {
+                        var options = new RefundCreateOptions
+                        {
+                            PaymentIntent = orderHeader.PaymentIntentId,
+                            Reason = RefundReasons.RequestedByCustomer
+                        };
 
-                var service = new RefundService();
-                Refund refund = service.Create(options);
+                        var service = new RefundService();
+                        var refund = await service.CreateAsync(options);
+                    
+                        if (refund.Status == "succeeded")
+                        {
+                            orderHeader.PaymentStatus = false;
+                            orderHeader.Status = OrderStatus.Refunded;
+                        }
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+                return true;
             }
-
-            await _db.SaveChangesAsync();
-            return true;
+            return false;
         }
         catch (Exception ex)
         {

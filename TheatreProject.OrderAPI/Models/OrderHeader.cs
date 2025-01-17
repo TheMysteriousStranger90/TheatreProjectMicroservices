@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TheatreProject.OrderAPI.Models.Enums;
 
 namespace TheatreProject.OrderAPI.Models;
 
@@ -21,6 +22,7 @@ public class OrderHeader
     public int CartTotalPerformances { get; set; }
     public IEnumerable<OrderDetails> OrderDetails { get; set; }
     public bool PaymentStatus { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
     
     public string? PaymentIntentId { get; set; }
     public string? StripeSessionId { get; set; }

@@ -15,11 +15,12 @@ public class OrderController : Controller
     private readonly ILogger<OrderController> _logger;
     private IPerformanceService _performanceService;
     private IOrderRepository _orderRepository;
-    
+
     private readonly IMessageBus _messageBus;
     private readonly IConfiguration _configuration;
-    
-    public OrderController(ILogger<OrderController> logger, IPerformanceService performanceService, IOrderRepository orderRepository, IMessageBus messageBus, IConfiguration configuration)
+
+    public OrderController(ILogger<OrderController> logger, IPerformanceService performanceService,
+        IOrderRepository orderRepository, IMessageBus messageBus, IConfiguration configuration)
     {
         _logger = logger;
         _performanceService = performanceService;
@@ -28,7 +29,7 @@ public class OrderController : Controller
         _configuration = configuration;
         this._response = new ResponseDto();
     }
-    
+
     [HttpGet("GetOrders")]
     [Authorize]
     public async Task<ActionResult<ResponseDto>> GetOrders([FromQuery] string? userId = "")
@@ -44,9 +45,10 @@ public class OrderController : Controller
             _response.ErrorMessages = new List<string> { ex.Message };
             _logger.LogError(ex, "Error getting orders");
         }
+
         return _response;
     }
-    
+
     [HttpGet("GetOrder/{orderId}")]
     [Authorize]
     public async Task<ActionResult<ResponseDto>> GetOrder(Guid orderId)
@@ -62,9 +64,10 @@ public class OrderController : Controller
             _response.ErrorMessages = new List<string> { ex.Message };
             _logger.LogError(ex, "Error getting order {OrderId}", orderId);
         }
+
         return _response;
     }
-    
+
     [HttpPost("CreateOrder")]
     [Authorize]
     public async Task<ActionResult<ResponseDto>> CreateOrder([FromBody] CartDto cartDto)
@@ -73,7 +76,7 @@ public class OrderController : Controller
         {
             var order = await _orderRepository.CreateOrder(cartDto);
             _response.Result = order;
-            
+
             /*
             // Publish order created event
             var topicName = _configuration.GetValue<string>("MessageBus:OrderCreatedTopic");
@@ -86,9 +89,10 @@ public class OrderController : Controller
             _response.ErrorMessages = new List<string> { ex.Message };
             _logger.LogError(ex, "Error creating order");
         }
+
         return _response;
     }
-    
+
     [HttpPost("CreatePaymentSession")]
     [Authorize]
     public async Task<ActionResult<ResponseDto>> CreatePaymentSession([FromBody] StripeRequestDto stripeRequestDto)
@@ -104,9 +108,10 @@ public class OrderController : Controller
             _response.ErrorMessages = new List<string> { ex.Message };
             _logger.LogError(ex, "Error creating payment session");
         }
+
         return _response;
     }
-    
+
     [HttpPost("ValidatePayment/{orderId}")]
     [Authorize]
     public async Task<ActionResult<ResponseDto>> ValidatePayment(Guid orderId)
@@ -131,15 +136,27 @@ public class OrderController : Controller
             _response.ErrorMessages = new List<string> { ex.Message };
             _logger.LogError(ex, "Error validating payment for order {OrderId}", orderId);
         }
+
         return _response;
     }
-    
+
     [HttpPost("UpdateOrderStatus/{orderId}")]
-    [Authorize(Roles = "Administrator")]
+    [Authorize]
     public async Task<ActionResult<ResponseDto>> UpdateOrderStatus(Guid orderId, [FromBody] string newStatus)
     {
         try
         {
+            _logger.LogInformation("Updating order status: OrderId={OrderId}, NewStatus={Status}",
+                orderId, newStatus);
+
+            var order = await _orderRepository.GetOrder(orderId);
+            if (order == null)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { "Order not found" };
+                return NotFound(_response);
+            }
+
             var result = await _orderRepository.UpdateOrderStatus(orderId, newStatus);
             _response.Result = result;
 
@@ -151,6 +168,12 @@ public class OrderController : Controller
                 await _messageBus.PublishMessage(new { OrderId = orderId, NewStatus = newStatus }, topicName);
                 */
             }
+
+            if (!result)
+            {
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { "Failed to update order status" };
+            }
         }
         catch (Exception ex)
         {
@@ -158,6 +181,7 @@ public class OrderController : Controller
             _response.ErrorMessages = new List<string> { ex.Message };
             _logger.LogError(ex, "Error updating order status for order {OrderId}", orderId);
         }
+
         return _response;
     }
 }

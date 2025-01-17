@@ -1,4 +1,4 @@
-﻿namespace TheatreProject.OrderAPI.Models.Enums;
+﻿namespace TheatreProject.WebApp.Models.Enums;
 
 public enum OrderStatus
 {

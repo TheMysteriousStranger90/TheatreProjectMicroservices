@@ -108,6 +108,9 @@ namespace TheatreProject.OrderAPI.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<string>("StripeSessionId")
                         .HasColumnType("nvarchar(max)");
 
