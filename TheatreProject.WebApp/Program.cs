@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Text.Json.Serialization;
 using Serilog;
 using Serilog.Enrichers.Span;
 using Serilog.Exceptions;
-using TheatreProject.WebApp.Constants;
 using TheatreProject.WebApp.Extensions;
 using TheatreProject.WebApp.Mapping;
-using TheatreProject.WebApp.Services;
-using TheatreProject.WebApp.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +21,13 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 });
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddApplicationServices(builder.Configuration);

@@ -2,6 +2,7 @@
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Stripe.Climate;
+using TheatreProject.MessageBus;
 using TheatreProject.OrderAPI.Data;
 using TheatreProject.OrderAPI.Mapping;
 using TheatreProject.OrderAPI.Repositories;
@@ -29,6 +30,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IOrderRepository, OrderRepository>();
         
         services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
+        services.AddScoped<IMessageBus, MessageBus.MessageBus>();
         services.AddScoped<IPerformanceService, PerformanceService>();
         
         services.AddHttpClient("PerformanceAPI", u => u.BaseAddress =

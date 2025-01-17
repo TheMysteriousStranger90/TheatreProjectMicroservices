@@ -15,7 +15,7 @@ public class CartController : Controller
     private readonly ICouponService _couponService;
     private readonly IPerformanceService _performanceService;
     private readonly ILogger<CartController> _logger;
-    
+
     private readonly IOrderService _orderService;
 
     public CartController(
@@ -39,24 +39,60 @@ public class CartController : Controller
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Checkout(CartDto cartDto)
     {
         try
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            var response = await _cartService.Checkout<ResponseDto>(cartDto.CartHeader, accessToken);
 
-            if (!response.IsSuccess)
+            // Get current cart state
+            var currentCart = await LoadCartByUser();
+            currentCart.CartHeader.Phone = cartDto.CartHeader.Phone;
+            currentCart.CartHeader.Email = cartDto.CartHeader.Email;
+            currentCart.CartHeader.FirstName = cartDto.CartHeader.FirstName;
+            currentCart.CartHeader.LastName = cartDto.CartHeader.LastName;
+
+            // Create order
+            var orderResponse = await _orderService.CreateOrderAsync<ResponseDto>(currentCart, accessToken);
+            if (!orderResponse.IsSuccess)
             {
-                TempData["Error"] = response.DisplayMessage;
+                TempData["Error"] = orderResponse.DisplayMessage;
                 return RedirectToAction(nameof(Checkout));
             }
 
-            return RedirectToAction(nameof(Confirmation));
+            var orderHeaderDto = JsonConvert.DeserializeObject<OrderHeaderDto>(
+                Convert.ToString(orderResponse.Result));
+
+            // Create Stripe session
+            var domain = $"{Request.Scheme}://{Request.Host.Value}/";
+            var stripeRequestDto = new StripeRequestDto
+            {
+                ApprovedUrl = domain + $"cart/Confirmation?orderId={orderHeaderDto.Id}",
+                CancelUrl = domain + "cart/Checkout",
+                OrderHeader = orderHeaderDto
+            };
+
+            var stripeResponse = await _orderService.CreatePaymentSessionAsync<ResponseDto>(
+                stripeRequestDto, accessToken);
+
+            if (!stripeResponse.IsSuccess)
+            {
+                TempData["Error"] = "Error creating payment session";
+                return RedirectToAction(nameof(Checkout));
+            }
+
+            var stripeSessionDto = JsonConvert.DeserializeObject<StripeRequestDto>(
+                Convert.ToString(stripeResponse.Result));
+
+            Response.Headers.Add("Location", stripeSessionDto.StripeSessionUrl);
+            return new StatusCodeResult(303);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            return View(cartDto);
+            _logger.LogError(ex, "Error during checkout");
+            TempData["Error"] = "An error occurred during checkout";
+            return RedirectToAction(nameof(Checkout));
         }
     }
 
@@ -68,6 +104,40 @@ public class CartController : Controller
     public async Task<IActionResult> Index()
     {
         return View(await LoadCartByUser());
+    }
+
+    [Authorize]
+    public async Task<IActionResult> Confirmation(Guid orderId)
+    {
+        try
+        {
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            var response = await _orderService.ValidatePaymentAsync<ResponseDto>(orderId, accessToken);
+
+            if (response?.IsSuccess == true)
+            {
+                var orderHeader = JsonConvert.DeserializeObject<OrderHeaderDto>(
+                    Convert.ToString(response.Result));
+
+                if (orderHeader.PaymentStatus == true)
+                {
+                    await _cartService.ClearCartAsync<ResponseDto>(orderHeader.UserId, accessToken);
+                    return View(orderId);
+                }
+            }
+
+            return RedirectToAction("Failed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing order confirmation");
+            return RedirectToAction("Failed");
+        }
+    }
+
+    public IActionResult Failed()
+    {
+        return View();
     }
 
     [Authorize]

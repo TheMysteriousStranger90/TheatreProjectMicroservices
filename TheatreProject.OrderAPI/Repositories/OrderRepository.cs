@@ -56,16 +56,24 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
-            // Map cart header to order header
             var orderHeaderDto = _mapper.Map<OrderHeaderDto>(cartDto.CartHeader);
+            orderHeaderDto.Id = Guid.NewGuid();
             orderHeaderDto.OrderTime = DateTime.Now;
-            orderHeaderDto.OrderDetails = _mapper.Map<IEnumerable<OrderDetails>>(cartDto.CartDetails);
             orderHeaderDto.CartTotalPerformances = cartDto.CartDetails?.Count() ?? 0;
             orderHeaderDto.PaymentStatus = false;
-
             orderHeaderDto.GrandTotal = Math.Round(cartDto.CartDetails?.Sum(d => d.SubTotal) ?? 0, 2);
+            
+            var orderDetails = cartDto.CartDetails.Select(cd =>
+            {
+                var detail = _mapper.Map<OrderDetails>(cd);
+                detail.Id = Guid.NewGuid();
+                detail.OrderHeaderId = orderHeaderDto.Id;
+                detail.PerformanceName = cd.PerformanceName;
+                return detail;
+            });
 
             var orderHeader = _mapper.Map<OrderHeader>(orderHeaderDto);
+            orderHeader.OrderDetails = orderDetails.ToList();
 
             _db.OrderHeaders.Add(orderHeader);
             await _db.SaveChangesAsync();
@@ -79,54 +87,44 @@ public class OrderRepository : IOrderRepository
         }
     }
 
-    public async Task<bool> AddOrder(OrderHeader orderHeader)
-    {
-        try
-        {
-            await _db.OrderHeaders.AddAsync(orderHeader);
-            await _db.SaveChangesAsync();
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding order");
-            return false;
-        }
-    }
-
     public async Task<StripeRequestDto> CreatePaymentSession(StripeRequestDto stripeRequestDto)
     {
         try
         {
+            _logger.LogInformation("Creating payment session for order {OrderId}",
+                stripeRequestDto.OrderHeader.Id);
+
             var options = new SessionCreateOptions
             {
-                SuccessUrl = stripeRequestDto.ApprovedUrl,
-                CancelUrl = stripeRequestDto.CancelUrl,
+                PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment",
+                SuccessUrl = stripeRequestDto.ApprovedUrl,
+                CancelUrl = stripeRequestDto.CancelUrl
             };
-
-            var discountObj = new List<SessionDiscountOptions>();
-            if (!string.IsNullOrEmpty(stripeRequestDto.OrderHeader.CouponCode))
-            {
-                discountObj.Add(new SessionDiscountOptions
-                {
-                    Coupon = stripeRequestDto.OrderHeader.CouponCode
-                });
-                options.Discounts = discountObj;
-            }
 
             foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
             {
+                var productName = !string.IsNullOrEmpty(item.PerformanceName)
+                    ? item.PerformanceName
+                    : "Theatre Ticket";
+
+                _logger.LogInformation("Adding line item: {ProductName}, Price: {Price}, Quantity: {Quantity}",
+                    productName, item.PricePerTicket, item.Quantity);
+
+                var unitAmount = (long)(item.PricePerTicket * 100);
+                var description = $"Seat(s): {item.SeatNumbers}";
+
                 var sessionLineItem = new SessionLineItemOptions
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                        UnitAmount = (long)(item.PricePerTicket * 100),
+                        UnitAmount = unitAmount,
                         Currency = "usd",
                         ProductData = new SessionLineItemPriceDataProductDataOptions
                         {
-                            Name = item.PerformanceName
+                            Name = productName,
+                            Description = description
                         }
                     },
                     Quantity = item.Quantity
@@ -137,9 +135,14 @@ public class OrderRepository : IOrderRepository
             var service = new SessionService();
             Session session = service.Create(options);
 
+            _logger.LogInformation("Created Stripe session: {SessionId}", session.Id);
+
             var orderHeader = await GetOrder(stripeRequestDto.OrderHeader.Id);
-            orderHeader.StripeSessionId = session.Id;
-            await _db.SaveChangesAsync();
+            if (orderHeader != null)
+            {
+                orderHeader.StripeSessionId = session.Id;
+                await _db.SaveChangesAsync();
+            }
 
             stripeRequestDto.StripeSessionId = session.Id;
             stripeRequestDto.StripeSessionUrl = session.Url;
