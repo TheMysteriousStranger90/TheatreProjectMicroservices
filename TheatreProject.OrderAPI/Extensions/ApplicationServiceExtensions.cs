@@ -32,9 +32,13 @@ public static class ApplicationServiceExtensions
         services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
         services.AddScoped<IMessageBus, MessageBus.MessageBus>();
         services.AddScoped<IPerformanceService, PerformanceService>();
+        services.AddScoped<IEmailService, EmailService>();
         
         services.AddHttpClient("PerformanceAPI", u => u.BaseAddress =
             new Uri(configuration["ServiceUrls:PerformanceAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
+        
+        services.AddHttpClient("EmailAPI", u => u.BaseAddress =
+            new Uri(configuration["ServiceUrls:EmailAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
 
         return services;
     }
