@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TheatreProject.MessageBus;
 using TheatreProject.OrderAPI.Models.DTOs;
@@ -14,20 +15,25 @@ public class OrderController : Controller
     protected ResponseDto _response;
     private readonly ILogger<OrderController> _logger;
     private IPerformanceService _performanceService;
+    private IEmailService _emailService;
     private IOrderRepository _orderRepository;
 
+    private readonly IMapper _mapper;
     private readonly IMessageBus _messageBus;
     private readonly IConfiguration _configuration;
 
-    public OrderController(ILogger<OrderController> logger, IPerformanceService performanceService,
-        IOrderRepository orderRepository, IMessageBus messageBus, IConfiguration configuration)
+    public OrderController(ILogger<OrderController> logger, IPerformanceService performanceService, IEmailService emailService,
+        IOrderRepository orderRepository, IMessageBus messageBus, IConfiguration configuration, IMapper mapper)
     {
         _logger = logger;
         _performanceService = performanceService;
+        _emailService = emailService;
         _orderRepository = orderRepository;
         _messageBus = messageBus;
         _configuration = configuration;
         this._response = new ResponseDto();
+        
+        _mapper = mapper;
     }
 
     [HttpGet("GetOrders")]
@@ -123,10 +129,13 @@ public class OrderController : Controller
 
             if (validatedOrder?.PaymentStatus == true)
             {
+                var orderConfirmation = _mapper.Map<OrderConfirmationDto>(validatedOrder);
+                await _emailService.SendOrderConfirmationAsync(orderConfirmation);
                 /*
                 // Publish payment successful event
-                var topicName = _configuration.GetValue<string>("MessageBus:PaymentSuccessfulTopic");
-                await _messageBus.PublishMessage(validatedOrder, topicName);
+                var orderConfirmation = _mapper.Map<OrderConfirmationDto>(validatedOrder);
+                var topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
+                await _messageBus.PublishMessage(orderConfirmation, topicName);
                 */
             }
         }

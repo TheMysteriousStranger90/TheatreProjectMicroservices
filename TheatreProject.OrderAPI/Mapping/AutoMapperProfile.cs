@@ -53,5 +53,28 @@ public class AutoMapperProfile : Profile
         CreateMap<CartDetailsDto, OrderDetailsDto>().ReverseMap();
         CreateMap<OrderHeader, OrderHeaderDto>().ReverseMap();
         CreateMap<OrderDetails, OrderDetailsDto>().ReverseMap();
+        
+        
+        
+        
+        CreateMap<OrderHeader, OrderConfirmationDto>()
+            .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.CustomerEmail, opt => opt.MapFrom(src => src.Email))
+            .ForMember(dest => dest.CustomerName, opt => 
+                opt.MapFrom(src => $"{src.FirstName} {src.LastName}".Trim()))
+            .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.GrandTotal))
+            .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderTime))
+            .ForMember(dest => dest.OrderDetails, opt => 
+                opt.MapFrom(src => src.OrderDetails));
+
+        CreateMap<OrderDetails, OrderDetailsDto>()
+            .ForMember(dest => dest.PerformanceName, opt => 
+                opt.MapFrom(src => src.PerformanceName))
+            .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+            .ForMember(dest => dest.PricePerTicket, opt => 
+                opt.MapFrom(src => src.PricePerTicket))
+            .ForMember(dest => dest.SubTotal, opt => opt.MapFrom(src => src.SubTotal))
+            .ForMember(dest => dest.SeatNumbers, opt => 
+                opt.MapFrom(src => src.SeatNumbers));
     }
 }
