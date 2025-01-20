@@ -15,6 +15,6 @@ public class OrderDetails
     public string SeatNumbers { get; set; }
     public TicketType TicketType { get; set; }
     public int Quantity { get; set; }
-    public double PricePerTicket { get; set; }
-    public double SubTotal { get; set; }
+    public decimal PricePerTicket { get; set; }
+    public decimal SubTotal { get; set; }
 }

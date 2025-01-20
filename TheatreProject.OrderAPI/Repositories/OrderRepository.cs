@@ -18,7 +18,8 @@ public class OrderRepository : IOrderRepository
     private readonly ILogger<OrderRepository> _logger;
     private readonly IPerformanceService _performanceService;
 
-    public OrderRepository(ApplicationDbContext db, IMapper mapper, ILogger<OrderRepository> logger, IPerformanceService performanceService)
+    public OrderRepository(ApplicationDbContext db, IMapper mapper, ILogger<OrderRepository> logger,
+        IPerformanceService performanceService)
     {
         _db = db;
         _mapper = mapper;
@@ -107,12 +108,12 @@ public class OrderRepository : IOrderRepository
                 SuccessUrl = stripeRequestDto.ApprovedUrl,
                 CancelUrl = stripeRequestDto.CancelUrl
             };
-            
-            double orderTotal = stripeRequestDto.OrderHeader.OrderDetails.Sum(item => item.SubTotal);
-            
-            double discountPercentage = !string.IsNullOrEmpty(stripeRequestDto.OrderHeader.CouponCode) ? 0.5 : 0;
-            double actualDiscountAmount = orderTotal * discountPercentage;
-            
+
+            var orderTotal = stripeRequestDto.OrderHeader.OrderDetails.Sum(item => item.SubTotal);
+
+            var discountPercentage = !string.IsNullOrEmpty(stripeRequestDto.OrderHeader.CouponCode) ? 0.5 : 0;
+            var actualDiscountAmount = orderTotal * (decimal)discountPercentage;
+
             stripeRequestDto.OrderHeader.DiscountTotal = actualDiscountAmount;
 
             foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
@@ -120,9 +121,9 @@ public class OrderRepository : IOrderRepository
                 var productName = !string.IsNullOrEmpty(item.PerformanceName)
                     ? item.PerformanceName
                     : "Theatre Ticket";
-                
+
                 var originalPrice = item.PricePerTicket;
-                var discountedPrice = originalPrice * (1 - discountPercentage);
+                var discountedPrice = originalPrice * (decimal)(1 - discountPercentage);
                 var unitAmount = (long)(discountedPrice * 100);
 
                 _logger.LogInformation(
@@ -173,7 +174,7 @@ public class OrderRepository : IOrderRepository
         var orderHeader = await _db.OrderHeaders
             .Include(o => o.OrderDetails)
             .FirstOrDefaultAsync(o => o.Id == orderHeaderId);
-        
+
         if (orderHeader == null) return null;
 
         var service = new SessionService();
@@ -188,11 +189,10 @@ public class OrderRepository : IOrderRepository
             orderHeader.Status = OrderStatus.Paid;
             orderHeader.PaymentStatus = true;
 
-            // Update seats for each performance in the order
             foreach (var detail in orderHeader.OrderDetails)
             {
                 await _performanceService.UpdatePerformanceSeats(
-                    detail.PerformanceId, 
+                    detail.PerformanceId,
                     detail.Quantity
                 );
             }
@@ -210,7 +210,7 @@ public class OrderRepository : IOrderRepository
             var orderHeader = await _db.OrderHeaders
                 .Include(x => x.OrderDetails)
                 .FirstOrDefaultAsync(o => o.Id == orderId);
-            
+
             if (orderHeader == null) return false;
 
             if (Enum.TryParse<OrderStatus>(newStatus, out OrderStatus status))
@@ -229,7 +229,7 @@ public class OrderRepository : IOrderRepository
 
                         var service = new RefundService();
                         var refund = await service.CreateAsync(options);
-                    
+
                         if (refund.Status == "succeeded")
                         {
                             orderHeader.PaymentStatus = false;
@@ -241,6 +241,7 @@ public class OrderRepository : IOrderRepository
                 await _db.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch (Exception ex)
