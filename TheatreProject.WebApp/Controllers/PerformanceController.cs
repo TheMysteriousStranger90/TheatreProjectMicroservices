@@ -54,7 +54,7 @@ public class PerformanceController : Controller
             if (string.IsNullOrEmpty(accessToken))
             {
                 _logger.LogWarning("Access token is null or empty");
-                return RedirectToAction("Login", "Auth");
+                return RedirectToAction("Search", "Performance");
             }
 
             model.Image = Image;
@@ -163,7 +163,7 @@ public class PerformanceController : Controller
             if (string.IsNullOrEmpty(accessToken))
             {
                 _logger.LogWarning("Access token is null or empty");
-                return RedirectToAction("Login", "Auth");
+                return RedirectToAction("Search", "Performance");
             }
 
             model.Image = Image;
