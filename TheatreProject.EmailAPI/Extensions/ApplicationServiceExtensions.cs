@@ -15,13 +15,13 @@ public static class ApplicationServiceExtensions
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-        
+
         services.Configure<MailSettings>(configuration.GetSection("MailSettings"));
-        
+
         services.AddScoped<IEmailService, EmailService>();
         services.AddSingleton<IEmailServiceFactory, EmailServiceFactory>();
         services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
-        
+
         services.AddAutoMapper(typeof(AutoMapperProfile));
 
         services.AddLogging(config =>
@@ -29,7 +29,7 @@ public static class ApplicationServiceExtensions
             config.AddConsole();
             config.AddDebug();
         });
-        
+
         return services;
     }
 }

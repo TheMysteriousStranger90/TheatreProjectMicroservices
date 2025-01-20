@@ -98,7 +98,7 @@ public class EmailControllerTests
             CustomerName = "Test User",
             OrderDate = DateTime.UtcNow,
             OrderDetails = new List<OrderDetailsDto>(),
-            TotalAmount = 100.00
+            TotalAmount = (decimal)100.00
         };
     }
 

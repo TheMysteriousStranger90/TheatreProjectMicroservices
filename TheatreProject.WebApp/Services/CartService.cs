@@ -179,7 +179,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.POST,
             Data = cartHeader,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/Checkout",
+            Url = $"{Const.ServerAPIBase}/api/cart/Checkout",
             AccessToken = token
         });
     }

@@ -45,15 +45,13 @@ public class CartController : Controller
         try
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-
-            // Get current cart state
+            
             var currentCart = await LoadCartByUser();
             currentCart.CartHeader.Phone = cartDto.CartHeader.Phone;
             currentCart.CartHeader.Email = cartDto.CartHeader.Email;
             currentCart.CartHeader.FirstName = cartDto.CartHeader.FirstName;
             currentCart.CartHeader.LastName = cartDto.CartHeader.LastName;
-
-            // Create order
+            
             var orderResponse = await _orderService.CreateOrderAsync<ResponseDto>(currentCart, accessToken);
             if (!orderResponse.IsSuccess)
             {
@@ -63,8 +61,7 @@ public class CartController : Controller
 
             var orderHeaderDto = JsonConvert.DeserializeObject<OrderHeaderDto>(
                 Convert.ToString(orderResponse.Result));
-
-            // Create Stripe session
+            
             var domain = $"{Request.Scheme}://{Request.Host.Value}/";
             var stripeRequestDto = new StripeRequestDto
             {
@@ -95,7 +92,7 @@ public class CartController : Controller
             return RedirectToAction(nameof(Checkout));
         }
     }
-    
+
     public async Task<IActionResult> Index()
     {
         return View(await LoadCartByUser());
@@ -224,7 +221,7 @@ public class CartController : Controller
                 {
                     UserId = userId,
                     Email = userEmail,
-                    GrandTotal = (double)(pricePerTicket * cartDetails.Quantity)
+                    GrandTotal = (pricePerTicket * cartDetails.Quantity)
                 },
                 CartDetails = new List<CartDetailsDto>
                 {
@@ -324,11 +321,11 @@ public class CartController : Controller
                                 Convert.ToString(coupon.Result));
 
                             discountAmount = originalTotal * ((decimal)couponObj.DiscountAmount / 100);
-                            cartDto.CartHeader.DiscountTotal = (double)couponObj.DiscountAmount;
+                            cartDto.CartHeader.DiscountTotal = couponObj.DiscountAmount;
                         }
                     }
 
-                    cartDto.CartHeader.GrandTotal = (double)(originalTotal - discountAmount);
+                    cartDto.CartHeader.GrandTotal = (originalTotal - discountAmount);
                 }
 
                 return cartDto;

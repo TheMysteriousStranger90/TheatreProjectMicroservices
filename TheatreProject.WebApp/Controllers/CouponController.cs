@@ -20,7 +20,7 @@ public class CouponController : Controller
         _couponService = couponService;
         _logger = logger;
     }
-    
+
     public async Task<IActionResult> Index()
     {
         try
@@ -43,7 +43,7 @@ public class CouponController : Controller
             return View(new List<CouponDto>());
         }
     }
-    
+
     public IActionResult Create()
     {
         return View(new CouponDto());
@@ -77,7 +77,7 @@ public class CouponController : Controller
             return View(model);
         }
     }
-    
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id)
