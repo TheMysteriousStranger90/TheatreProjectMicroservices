@@ -32,8 +32,8 @@ namespace TheatreProject.CouponAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("DiscountAmount")
-                        .HasColumnType("float");
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -42,27 +42,27 @@ namespace TheatreProject.CouponAPI.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("daf81db8-7c80-415c-89dc-731c3074e06c"),
+                            Id = new Guid("d4349836-e348-41b0-ac7d-10c81cd1de0f"),
                             CouponCode = "NEW10",
-                            DiscountAmount = 10.0
+                            DiscountAmount = 10m
                         },
                         new
                         {
-                            Id = new Guid("c4808c4d-c3c3-470d-93dd-4c097a8dc28e"),
+                            Id = new Guid("bec4dda0-ed19-4da3-b7b1-2832c23e31a4"),
                             CouponCode = "EARLY20",
-                            DiscountAmount = 20.0
+                            DiscountAmount = 20m
                         },
                         new
                         {
-                            Id = new Guid("3d3b160d-e58a-4312-82bc-28f72e8e1684"),
+                            Id = new Guid("744d1a06-9109-48f9-89c6-aecc436b87b0"),
                             CouponCode = "GROUP15",
-                            DiscountAmount = 15.0
+                            DiscountAmount = 15m
                         },
                         new
                         {
-                            Id = new Guid("f0c479d5-58fc-4af3-acbf-46b04fe7ebc2"),
+                            Id = new Guid("a6b216dc-724f-4da9-8e33-04dc2cd39e41"),
                             CouponCode = "VIP25",
-                            DiscountAmount = 25.0
+                            DiscountAmount = 25m
                         });
                 });
 #pragma warning restore 612, 618

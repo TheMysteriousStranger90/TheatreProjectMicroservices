@@ -15,7 +15,7 @@ public class EmailController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly ILogger<EmailController> _logger;
 
-    public EmailController(IEmailService emailService, ApplicationDbContext context, 
+    public EmailController(IEmailService emailService, ApplicationDbContext context,
         ILogger<EmailController> logger)
     {
         _emailService = emailService;
@@ -29,7 +29,7 @@ public class EmailController : ControllerBase
         try
         {
             await _emailService.SendOrderConfirmationAsync(orderDetails);
-            
+
             // Log email
             var emailLog = new EmailLogger
             {
@@ -38,7 +38,7 @@ public class EmailController : ControllerBase
                 Message = $"Order confirmation sent for Order #{orderDetails.OrderId}",
                 EmailSent = DateTime.UtcNow
             };
-            
+
             await _context.EmailLoggers.AddAsync(emailLog);
             await _context.SaveChangesAsync();
 

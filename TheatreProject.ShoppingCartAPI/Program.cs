@@ -1,7 +1,4 @@
 using TheatreProject.ShoppingCartAPI.Extensions;
-using TheatreProject.ShoppingCartAPI.Services;
-using TheatreProject.ShoppingCartAPI.Services.Interfaces;
-using TheatreProject.ShoppingCartAPI.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 

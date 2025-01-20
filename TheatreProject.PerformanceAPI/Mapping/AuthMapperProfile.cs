@@ -9,7 +9,7 @@ public class AutoMapperProfile : Profile
     public AutoMapperProfile()
     {
         CreateMap<Performance, PerformanceDto>();
-        
+
         CreateMap<Performance, PerformanceDto>().ReverseMap();
 
         CreateMap<CreatePerformanceDto, Performance>()
@@ -32,7 +32,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.TotalBookings, opt => opt.Ignore())
             .ForMember(dest => dest.Revenue, opt => opt.Ignore())
             .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
-        
+
         CreateMap<Performance, EditPerformanceDto>().ReverseMap()
             .ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => DateTime.UtcNow));
     }

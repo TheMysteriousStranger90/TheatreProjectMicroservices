@@ -155,7 +155,7 @@ public class PerformanceController : ControllerBase
             return StatusCode(500, _response);
         }
     }
-    
+
     [HttpPut]
     [Authorize(Roles = "Administrator")]
     public async Task<ActionResult<ResponseDto>> UpdatePerformance([FromForm] EditPerformanceDto dto)
@@ -175,9 +175,10 @@ public class PerformanceController : ControllerBase
                 return BadRequest(_response);
             }
 
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
+            var baseUrl =
+                $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
             var updatedPerformance = await _repository.UpdatePerformance(dto, baseUrl);
-    
+
             if (updatedPerformance == null)
             {
                 _logger.LogWarning("Performance not found: {Id}", dto.Id);
@@ -185,7 +186,7 @@ public class PerformanceController : ControllerBase
             }
 
             _response.Result = updatedPerformance;
-        
+
             var keysToRemove = _cacheKeyService.GetKeysStartingWith(PerformancesCacheKey);
             foreach (var cacheKey in keysToRemove)
             {
@@ -398,7 +399,7 @@ public class PerformanceController : ControllerBase
 
         return _response;
     }
-    
+
     [HttpPut("{id}/seats")]
     public async Task<ActionResult<ResponseDto>> UpdatePerformanceSeats(Guid id, [FromQuery] int bookedSeats)
     {
@@ -412,10 +413,10 @@ public class PerformanceController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ResponseDto 
-            { 
-                IsSuccess = false, 
-                ErrorMessages = new List<string> { ex.Message } 
+            return StatusCode(500, new ResponseDto
+            {
+                IsSuccess = false,
+                ErrorMessages = new List<string> { ex.Message }
             });
         }
     }

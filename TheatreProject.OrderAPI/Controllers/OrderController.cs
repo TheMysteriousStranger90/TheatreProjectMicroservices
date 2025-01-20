@@ -17,12 +17,12 @@ public class OrderController : Controller
     private IPerformanceService _performanceService;
     private IEmailService _emailService;
     private IOrderRepository _orderRepository;
-
     private readonly IMapper _mapper;
     private readonly IMessageBus _messageBus;
     private readonly IConfiguration _configuration;
 
-    public OrderController(ILogger<OrderController> logger, IPerformanceService performanceService, IEmailService emailService,
+    public OrderController(ILogger<OrderController> logger, IPerformanceService performanceService,
+        IEmailService emailService,
         IOrderRepository orderRepository, IMessageBus messageBus, IConfiguration configuration, IMapper mapper)
     {
         _logger = logger;
@@ -32,7 +32,7 @@ public class OrderController : Controller
         _messageBus = messageBus;
         _configuration = configuration;
         this._response = new ResponseDto();
-        
+
         _mapper = mapper;
     }
 

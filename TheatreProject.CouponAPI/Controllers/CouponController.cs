@@ -51,7 +51,7 @@ public class CouponController : ControllerBase
 
         return _response;
     }
-    
+
     [HttpGet("GetByCode/{code}")]
     public async Task<ResponseDto> GetByCode(string code)
     {
@@ -67,7 +67,7 @@ public class CouponController : ControllerBase
 
         return _response;
     }
-    
+
     [HttpPost]
     [Authorize(Roles = "Administrator")]
     public async Task<ResponseDto> Create([FromBody] CouponDto couponDto)

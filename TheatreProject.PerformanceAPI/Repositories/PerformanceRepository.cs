@@ -31,7 +31,7 @@ public class PerformanceRepository : IPerformanceRepository
                 performance.AvailableSeats = performance.Capacity;
                 performance.ImageUrl = performanceDto.ImageUrl;
                 performance.ImageLocalPath = performanceDto.ImageLocalPath;
-            
+
                 await _context.Performances.AddAsync(performance);
                 await _context.SaveChangesAsync();
                 return _mapper.Map<PerformanceDto>(performance);
@@ -168,7 +168,6 @@ public class PerformanceRepository : IPerformanceRepository
             query = query.Where(p => p.ShowDateTime <= parameters.EndDate);
         }
 
-        // Add price range filtering
         if (parameters.MinPrice.HasValue)
         {
             query = query.Where(p => p.BasePrice >= parameters.MinPrice);
@@ -220,7 +219,7 @@ public class PerformanceRepository : IPerformanceRepository
             TotalBookings = performance.Capacity - performance.AvailableSeats,
             TotalRevenue = (performance.Capacity - performance.AvailableSeats) * performance.BasePrice,
             AvailableSeats = performance.AvailableSeats,
-            OccupancyRate = ((double)(performance.Capacity - performance.AvailableSeats) / performance.Capacity) * 100
+            OccupancyRate = ((performance.Capacity - performance.AvailableSeats) / performance.Capacity) * 100
         };
     }
 
@@ -245,7 +244,7 @@ public class PerformanceRepository : IPerformanceRepository
 
         return performance?.AvailableSeats == 0;
     }
-    
+
     public async Task<bool> UpdatePerformanceSeats(Guid performanceId, int bookedSeats)
     {
         var performance = await _context.Performances.FindAsync(performanceId);

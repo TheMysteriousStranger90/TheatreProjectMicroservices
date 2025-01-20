@@ -19,28 +19,29 @@ public static class ApplicationServiceExtensions
         IConfiguration configuration)
     {
         services.AddHttpContextAccessor();
-        
+
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-        
+
         services.AddAutoMapper(typeof(AutoMapperProfile));
-        
+
         services.AddScoped<ValidationFilter>();
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<CartDtoValidator>();
-        
+
         services.AddScoped<ICartRepository, CartRepository>();
-        
+
         services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
         services.AddScoped<ICouponService, CouponService>();
-        
+
         services.AddSingleton<IMessageBus, MessageBus.MessageBus>();
 
         services.AddHttpClient("PerformanceAPI", u => u.BaseAddress =
-            new Uri(configuration["ServiceUrls:PerformanceAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
-        
-        
-        services.AddHttpClient("CouponAPI", u => 
+                new Uri(configuration["ServiceUrls:PerformanceAPI"]))
+            .AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
+
+
+        services.AddHttpClient("CouponAPI", u =>
         {
             u.BaseAddress = new Uri(configuration["ServiceUrls:CouponAPI"]);
             u.Timeout = TimeSpan.FromSeconds(30);

@@ -37,8 +37,8 @@ namespace TheatreProject.OrderAPI.Migrations
                     b.Property<string>("PerformanceName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("PricePerTicket")
-                        .HasColumnType("float");
+                    b.Property<decimal>("PricePerTicket")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
@@ -47,8 +47,8 @@ namespace TheatreProject.OrderAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("SubTotal")
-                        .HasColumnType("float");
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("TicketType")
                         .HasColumnType("int");
@@ -78,8 +78,8 @@ namespace TheatreProject.OrderAPI.Migrations
                     b.Property<string>("CouponCode")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("DiscountTotal")
-                        .HasColumnType("float");
+                    b.Property<decimal>("DiscountTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
@@ -90,8 +90,8 @@ namespace TheatreProject.OrderAPI.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("GrandTotal")
-                        .HasColumnType("float");
+                    b.Property<decimal>("GrandTotal")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");

@@ -35,12 +35,12 @@ public class DbInitializer : IDbInitializer
 
         ApplicationUser adminUser = new ApplicationUser()
         {
-            UserName = "admin1@gmail.com",
-            Email = "admin1@gmail.com",
+            UserName = "example.administrator@gmail.com",
+            Email = "example.administrator@gmail.com",
             EmailConfirmed = true,
             PhoneNumber = "111111111111",
-            FirstName = "Ben",
-            LastName = "Admin"
+            FirstName = "Example",
+            LastName = "Administrator"
         };
 
         _userManager.CreateAsync(adminUser, "Admin123*").GetAwaiter().GetResult();
@@ -57,12 +57,12 @@ public class DbInitializer : IDbInitializer
 
         ApplicationUser customerUser = new ApplicationUser()
         {
-            UserName = "customer1@gmail.com",
-            Email = "customer1@gmail.com",
+            UserName = "andrey.stroganov87@gmail.com",
+            Email = "andrey.stroganov87@gmail.com",
             EmailConfirmed = true,
             PhoneNumber = "111111111111",
-            FirstName = "John",
-            LastName = "Customer"
+            FirstName = "Andrey",
+            LastName = "Stroganov"
         };
 
         _userManager.CreateAsync(customerUser, "Admin123*").GetAwaiter().GetResult();

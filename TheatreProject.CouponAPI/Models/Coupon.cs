@@ -6,5 +6,5 @@ public class Coupon
 {
     [Key] public Guid Id { get; set; }
     [Required] public string CouponCode { get; set; }
-    [Required] public double DiscountAmount { get; set; }
+    [Required] public decimal DiscountAmount { get; set; }
 }

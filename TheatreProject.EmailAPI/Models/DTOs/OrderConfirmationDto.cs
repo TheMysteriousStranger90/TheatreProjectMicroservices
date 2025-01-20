@@ -7,6 +7,6 @@ public class OrderConfirmationDto
     public string CustomerEmail { get; set; }
     public string CustomerName { get; set; }
     public List<OrderDetailsDto> OrderDetails { get; set; }
-    public double TotalAmount { get; set; }
+    public decimal TotalAmount { get; set; }
     public DateTime OrderDate { get; set; }
 }
