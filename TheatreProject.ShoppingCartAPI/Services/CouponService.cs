@@ -23,17 +23,17 @@ public class CouponService : ICouponService
         {
             var client = _httpClientFactory.CreateClient("CouponAPI");
             var response = await client.GetAsync($"/api/coupon/GetByCode/{couponCode}");
-            
+
             response.EnsureSuccessStatusCode();
-            
+
             var apiContent = await response.Content.ReadAsStringAsync();
             var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-            
+
             if (resp?.IsSuccess == true)
             {
                 return JsonConvert.DeserializeObject<CouponDto>(Convert.ToString(resp.Result));
             }
-            
+
             _logger.LogWarning("Coupon not found: {CouponCode}", couponCode);
             return new CouponDto();
         }
@@ -49,12 +49,12 @@ public class CouponService : ICouponService
         try
         {
             _logger.LogInformation("Checking existence of coupon: {CouponCode}", couponCode);
-        
+
             var client = _httpClientFactory.CreateClient("CouponAPI");
             var response = await client.GetAsync($"api/coupon/exists/{couponCode}");
 
             var apiContent = await response.Content.ReadAsStringAsync();
-            _logger.LogDebug("Coupon API Response: {StatusCode}, Content: {Content}", 
+            _logger.LogDebug("Coupon API Response: {StatusCode}, Content: {Content}",
                 response.StatusCode, apiContent);
 
             if (!response.IsSuccessStatusCode)
@@ -94,18 +94,20 @@ public class CouponService : ICouponService
         try
         {
             var client = _httpClientFactory.CreateClient("CouponAPI");
-            var response = await client.GetAsync($"/api/coupon/validate?code={couponCode}&amount={orderAmount}&tickets={ticketCount}");
-        
+            var response =
+                await client.GetAsync(
+                    $"/api/coupon/validate?code={couponCode}&amount={orderAmount}&tickets={ticketCount}");
+
             response.EnsureSuccessStatusCode();
-        
+
             var apiContent = await response.Content.ReadAsStringAsync();
             var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-        
+
             if (resp?.IsSuccess == true)
             {
                 return JsonConvert.DeserializeObject<bool>(Convert.ToString(resp.Result));
             }
-        
+
             _logger.LogWarning("Coupon validation failed: {CouponCode}", couponCode);
             return false;
         }
@@ -115,24 +117,24 @@ public class CouponService : ICouponService
             return false;
         }
     }
-    
+
     public async Task<decimal> CalculateDiscount(string couponCode, decimal amount)
     {
         try
         {
             var client = _httpClientFactory.CreateClient("CouponAPI");
             var response = await client.GetAsync($"/api/coupon/calculate?code={couponCode}&amount={amount}");
-        
+
             response.EnsureSuccessStatusCode();
-        
+
             var apiContent = await response.Content.ReadAsStringAsync();
             var resp = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
-        
+
             if (resp?.IsSuccess == true)
             {
                 return JsonConvert.DeserializeObject<decimal>(Convert.ToString(resp.Result));
             }
-        
+
             _logger.LogWarning("Discount calculation failed: {CouponCode}", couponCode);
             return 0;
         }

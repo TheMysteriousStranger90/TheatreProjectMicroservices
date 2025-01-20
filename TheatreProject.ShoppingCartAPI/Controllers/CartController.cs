@@ -14,8 +14,6 @@ public class CartController : Controller
 {
     private readonly ICartRepository _cartRepository;
     private readonly ILogger<CartController> _logger;
-
-    //private readonly ICouponRepository _couponRepository;
     private readonly IMessageBus _messageBus;
     private readonly ICouponService _couponService;
     protected ResponseDto _response;
@@ -28,7 +26,6 @@ public class CartController : Controller
         _cartRepository = cartRepository;
         _couponService = couponService;
         _logger = logger;
-        //_couponRepository = couponRepository;
         _messageBus = messageBus;
         _response = new ResponseDto();
     }
@@ -152,9 +149,9 @@ public class CartController : Controller
             }
 
             var isSuccess = await _cartRepository.ApplyCoupon(
-                cartDto.CartHeader.UserId, 
+                cartDto.CartHeader.UserId,
                 cartDto.CartHeader.CouponCode);
-            
+
             _response.Result = isSuccess;
             return _response;
         }
@@ -183,10 +180,8 @@ public class CartController : Controller
 
         return _response;
     }
-    
-    
-    
-    
+
+
     [HttpGet("ValidateCart")]
     public async Task<ResponseDto> ValidateCart([FromQuery] string userId)
     {
@@ -200,6 +195,7 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
 
@@ -215,9 +211,10 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
-    
+
     [HttpGet("ValidateSeats")]
     public async Task<ResponseDto> ValidateSeats([FromQuery] Guid performanceId, [FromQuery] string seats)
     {
@@ -230,6 +227,7 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
 
@@ -245,9 +243,10 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
-    
+
     [HttpGet("Status/{userId}")]
     public async Task<ResponseDto> GetCartStatus(string userId)
     {
@@ -260,6 +259,7 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
 
@@ -275,9 +275,10 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
-    
+
     [HttpGet("Detail/{cartDetailId}")]
     public async Task<ResponseDto> GetCartDetail(Guid cartDetailId)
     {
@@ -290,16 +291,17 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
-    
+
     [HttpPost("ValidateCouponForCart")]
     public async Task<ResponseDto> ValidateCouponForCart([FromBody] CartDto cartDto)
     {
         try
         {
             var result = await _couponService.ValidateCouponForCart(
-                cartDto.CartHeader.CouponCode, 
+                cartDto.CartHeader.CouponCode,
                 cartDto);
             _response.Result = result;
         }
@@ -308,9 +310,10 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string> { ex.Message };
         }
+
         return _response;
     }
-    
+
     [HttpPost("Checkout")]
     public async Task<ResponseDto> Checkout(CheckoutHeaderDto checkoutHeaderDto)
     {
@@ -329,7 +332,7 @@ public class CartController : Controller
             {
                 CouponDto coupon = await _couponService.GetCoupon(checkoutHeaderDto.CouponCode);
 
-                if (checkoutHeaderDto.DiscountTotal != (double)coupon.DiscountAmount)
+                if (checkoutHeaderDto.DiscountTotal != coupon.DiscountAmount)
                 {
                     _response.IsSuccess = false;
                     _response.ErrorMessages = new List<string>() { "Coupon Price has changed, please confirm" };
@@ -348,6 +351,7 @@ public class CartController : Controller
             _response.IsSuccess = false;
             _response.ErrorMessages = new List<string>() { ex.ToString() };
         }
+
         return _response;
     }
 }

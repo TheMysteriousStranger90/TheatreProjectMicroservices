@@ -12,7 +12,8 @@ public class BackendApiAuthenticationHttpClientHandler : DelegatingHandler
         _accessor = accessor;
     }
 
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
     {
         var token = await _accessor.HttpContext.GetTokenAsync("access_token");
 
