@@ -1,5 +1,5 @@
 # TheatreProjectMicroservices
-
+![Image 1](Screenshots/Screen1.png)
 A microservices-based theatre booking system that allows users to browse performances, book tickets, and manage their orders.
 The project is based on the course ".NET Core Microservices - The Complete Guide" with significant modifications and improvements:
 changed theme, completely redesigned UI/UX, added new features specific to theatre domain, implemented comprehensive unit testing, enhanced caching mechanism, improved logging and monitoring, added email notifications and more.
@@ -18,6 +18,8 @@ The solution consists of the following microservices:
 - **TheatreProject.MessageBus**: Azure Service Bus for inter-service communication
 - **TheatreProject.GatewaySolution**: API Gateway for routing requests to the appropriate microservice
 
+![Image 2](Screenshots/Screen2.png)
+![Image 3](Screenshots/Screen3.png)
 
 ## Technologies
 
