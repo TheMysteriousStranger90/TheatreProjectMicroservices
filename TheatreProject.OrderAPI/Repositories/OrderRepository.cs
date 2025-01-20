@@ -100,13 +100,30 @@ public class OrderRepository : IOrderRepository
     {
         try
         {
+            var customerService = new CustomerService();
+            var customerOptions = new CustomerCreateOptions
+            {
+                Name = $"{stripeRequestDto.OrderHeader.FirstName} {stripeRequestDto.OrderHeader.LastName}",
+                Email = stripeRequestDto.OrderHeader.Email,
+                Phone = stripeRequestDto.OrderHeader.Phone,
+                Description = $"Customer for Order #{stripeRequestDto.OrderHeader.Id}"
+            };
+
+            var customer = await customerService.CreateAsync(customerOptions);
+            
+            
             var options = new SessionCreateOptions
             {
+                Customer = customer.Id,
                 PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>(),
                 Mode = "payment",
                 SuccessUrl = stripeRequestDto.ApprovedUrl,
-                CancelUrl = stripeRequestDto.CancelUrl
+                CancelUrl = stripeRequestDto.CancelUrl,
+                PaymentMethodOptions = new SessionPaymentMethodOptionsOptions
+                {
+                    Card = new SessionPaymentMethodOptionsCardOptions()
+                },
             };
 
             var orderTotal = stripeRequestDto.OrderHeader.OrderDetails.Sum(item => item.SubTotal);
@@ -148,7 +165,7 @@ public class OrderRepository : IOrderRepository
             }
 
             var service = new SessionService();
-            Session session = service.Create(options);
+            Session session = await service.CreateAsync(options);
 
             var orderHeader = await GetOrder(stripeRequestDto.OrderHeader.Id);
             if (orderHeader != null)

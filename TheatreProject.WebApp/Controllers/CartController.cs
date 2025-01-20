@@ -45,13 +45,13 @@ public class CartController : Controller
         try
         {
             var accessToken = await HttpContext.GetTokenAsync("access_token");
-            
+
             var currentCart = await LoadCartByUser();
             currentCart.CartHeader.Phone = cartDto.CartHeader.Phone;
             currentCart.CartHeader.Email = cartDto.CartHeader.Email;
             currentCart.CartHeader.FirstName = cartDto.CartHeader.FirstName;
             currentCart.CartHeader.LastName = cartDto.CartHeader.LastName;
-            
+
             var orderResponse = await _orderService.CreateOrderAsync<ResponseDto>(currentCart, accessToken);
             if (!orderResponse.IsSuccess)
             {
@@ -61,13 +61,25 @@ public class CartController : Controller
 
             var orderHeaderDto = JsonConvert.DeserializeObject<OrderHeaderDto>(
                 Convert.ToString(orderResponse.Result));
-            
+
             var domain = $"{Request.Scheme}://{Request.Host.Value}/";
             var stripeRequestDto = new StripeRequestDto
             {
                 ApprovedUrl = domain + $"cart/Confirmation?orderId={orderHeaderDto.Id}",
                 CancelUrl = domain + "cart/Checkout",
-                OrderHeader = orderHeaderDto
+                OrderHeader = orderHeaderDto,
+                CustomerEmail = cartDto.CartHeader.Email,
+                CustomerName = $"{cartDto.CartHeader.FirstName} {cartDto.CartHeader.LastName}",
+                CustomerPhone = cartDto.CartHeader.Phone,
+                PaymentMethodData = new()
+                {
+                    BillingDetails = new()
+                    {
+                        Email = cartDto.CartHeader.Email,
+                        Name = $"{cartDto.CartHeader.FirstName} {cartDto.CartHeader.LastName}",
+                        Phone = cartDto.CartHeader.Phone
+                    }
+                }
             };
 
             var stripeResponse = await _orderService.CreatePaymentSessionAsync<ResponseDto>(
@@ -197,6 +209,8 @@ public class CartController : Controller
         {
             var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
             var userEmail = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email)?.Value;
+            var firstName = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.GivenName)?.Value;
+            var lastName = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.FamilyName)?.Value;
 
             if (string.IsNullOrEmpty(userEmail))
             {
@@ -221,6 +235,8 @@ public class CartController : Controller
                 {
                     UserId = userId,
                     Email = userEmail,
+                    FirstName = firstName,
+                    LastName = lastName,
                     GrandTotal = (pricePerTicket * cartDetails.Quantity)
                 },
                 CartDetails = new List<CartDetailsDto>
@@ -273,6 +289,9 @@ public class CartController : Controller
         try
         {
             var userId = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            var userEmail = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email)?.Value;
+            var firstName = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.GivenName)?.Value;
+            var lastName = User.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.FamilyName)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return new CartDto
@@ -291,6 +310,10 @@ public class CartController : Controller
 
                 if (cartDto?.CartHeader != null && cartDto.CartDetails != null)
                 {
+                    cartDto.CartHeader.Email = userEmail;
+                    cartDto.CartHeader.FirstName = firstName;
+                    cartDto.CartHeader.LastName = lastName;
+                    
                     decimal originalTotal = 0;
                     foreach (var detail in cartDto.CartDetails)
                     {
@@ -331,9 +354,15 @@ public class CartController : Controller
                 return cartDto;
             }
 
+
             return new CartDto
             {
-                CartHeader = new CartHeaderDto(),
+                CartHeader = new CartHeaderDto
+                {
+                    Email = userEmail,
+                    FirstName = firstName,
+                    LastName = lastName
+                },
                 CartDetails = new List<CartDetailsDto>()
             };
         }
