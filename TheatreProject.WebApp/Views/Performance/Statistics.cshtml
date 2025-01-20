@@ -60,23 +60,25 @@
                                     <h6 class="card-title">
                                         <i class="fas fa-percentage me-2"></i>Occupancy Rate
                                     </h6>
-                                    <h2 class="mb-0">@Model.OccupancyRate.ToString("F1")%</h2>
+                                    <h2 class="mb-0">
+                                        @(Model.OccupancyRate > 0 ? Model.OccupancyRate.ToString("F1") : "0.0")%
+                                    </h2>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Progress Bar -->
-                    <div class="mt-4">
-                        <h5>Occupancy Progress</h5>
-                        <div class="progress" style="height: 25px;">
-                            <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
-                                 role="progressbar"
-                                 style="width: @Model.OccupancyRate%"
-                                 aria-valuenow="@Model.OccupancyRate"
-                                 aria-valuemin="0"
-                                 aria-valuemax="100">
-                                @Model.OccupancyRate.ToString("F1")%
+                        <!-- Progress Bar -->
+                        <div class="mt-4">
+                            <h5>Occupancy Progress</h5>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"
+                                     role="progressbar"
+                                     style="width: @(Model.OccupancyRate > 0 ? $"{Model.OccupancyRate}%" : "0%")"
+                                     aria-valuenow="@Model.OccupancyRate"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    @(Model.OccupancyRate > 0 ? Model.OccupancyRate.ToString("F1") : "0.0")%
+                                </div>
                             </div>
                         </div>
                     </div>

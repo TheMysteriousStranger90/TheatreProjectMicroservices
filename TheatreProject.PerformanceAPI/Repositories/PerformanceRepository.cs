@@ -211,15 +211,18 @@ public class PerformanceRepository : IPerformanceRepository
         var performance = await _context.Performances
             .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (performance == null)
-            return null;
+        if (performance == null || performance.Capacity == 0)
+            return new PerformanceStatistics();
+
+        var bookedSeats = performance.Capacity - performance.AvailableSeats;
+        var occupancyRate = ((decimal)bookedSeats / performance.Capacity) * 100;
 
         return new PerformanceStatistics
         {
-            TotalBookings = performance.Capacity - performance.AvailableSeats,
-            TotalRevenue = (performance.Capacity - performance.AvailableSeats) * performance.BasePrice,
+            TotalBookings = bookedSeats,
+            TotalRevenue = bookedSeats * performance.BasePrice,
             AvailableSeats = performance.AvailableSeats,
-            OccupancyRate = ((performance.Capacity - performance.AvailableSeats) / performance.Capacity) * 100
+            OccupancyRate = Math.Round(occupancyRate, 1)
         };
     }
 
