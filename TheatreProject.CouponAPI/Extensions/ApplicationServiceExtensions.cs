@@ -11,14 +11,12 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services,
         IConfiguration configuration)
     {
-        
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-        
+
         services.AddAutoMapper(typeof(AutoMapperProfile));
-        
+
         services.AddScoped<ICouponRepository, CouponRepository>();
-        
 
 
         return services;
