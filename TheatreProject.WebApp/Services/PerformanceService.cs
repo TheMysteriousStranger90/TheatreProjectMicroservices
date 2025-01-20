@@ -23,7 +23,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.PerformanceAPIBase}/api/performances",
+            Url = $"{Const.ServerAPIBase}/api/performances",
             AccessToken = token
         });
     }
@@ -33,7 +33,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/{id}",
+            Url = $"{Const.ServerAPIBase}/api/performances/{id}",
             AccessToken = token
         });
     }
@@ -43,7 +43,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/upcoming",
+            Url = $"{Const.ServerAPIBase}/api/performances/upcoming",
             AccessToken = token
         });
     }
@@ -54,7 +54,7 @@ public class PerformanceService : IPerformanceService
         {
             ApiType = ApiType.POST,
             Data = performanceDto,
-            Url = $"{Const.PerformanceAPIBase}/api/performances",
+            Url = $"{Const.ServerAPIBase}/api/performances",
             AccessToken = token,
             ContentType = ContentType.MultipartFormData
         });
@@ -66,7 +66,7 @@ public class PerformanceService : IPerformanceService
         {
             ApiType = ApiType.PUT,
             Data = performanceDto,
-            Url = $"{Const.PerformanceAPIBase}/api/performances",
+            Url = $"{Const.ServerAPIBase}/api/performances",
             AccessToken = token,
             ContentType = ContentType.MultipartFormData
         });
@@ -77,7 +77,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.DELETE,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/{id}",
+            Url = $"{Const.ServerAPIBase}/api/performances/{id}",
             AccessToken = token
         });
     }
@@ -108,7 +108,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/search{queryString}",
+            Url = $"{Const.ServerAPIBase}/api/performances/search{queryString}",
             AccessToken = token
         });
     }
@@ -118,7 +118,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/{id}/statistics",
+            Url = $"{Const.ServerAPIBase}/api/performances/{id}/statistics",
             AccessToken = token
         });
     }
@@ -129,7 +129,7 @@ public class PerformanceService : IPerformanceService
         {
             ApiType = ApiType.PUT,
             Data = status,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/{id}/status",
+            Url = $"{Const.ServerAPIBase}/api/performances/{id}/status",
             AccessToken = token
         });
     }
@@ -139,7 +139,7 @@ public class PerformanceService : IPerformanceService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.PerformanceAPIBase}/api/performances/{id}/sold-out",
+            Url = $"{Const.ServerAPIBase}/api/performances/{id}/sold-out",
             AccessToken = token
         });
     }

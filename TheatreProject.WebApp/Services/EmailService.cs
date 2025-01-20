@@ -21,7 +21,7 @@ public class EmailService : BaseService, IEmailService
         {
             ApiType = ApiType.POST,
             Data = orderDetails,
-            Url = $"{Const.EmailAPIBase}/api/email/SendOrderConfirmation",
+            Url = $"{Const.ServerAPIBase}/api/email/SendOrderConfirmation",
             AccessToken = token
         });
     }
@@ -31,7 +31,7 @@ public class EmailService : BaseService, IEmailService
         return await SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.EmailAPIBase}/api/email/logs",
+            Url = $"{Const.ServerAPIBase}/api/email/logs",
             AccessToken = token
         });
     }

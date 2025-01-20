@@ -37,6 +37,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.EmailAPI", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.EmailAPI.Tests", "TheatreProject.EmailAPI.Tests\TheatreProject.EmailAPI.Tests.csproj", "{4E15BC33-AC90-49C0-B1C5-F766C32DD7E4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gateway", "Gateway", "{A21AD14E-4C00-4928-9088-C9E8849F5D7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TheatreProject.GatewaySolution", "TheatreProject.GatewaySolution\TheatreProject.GatewaySolution.csproj", "{39354DBF-1D1E-447F-BA08-2A3FE2DDDFDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +95,10 @@ Global
 		{4E15BC33-AC90-49C0-B1C5-F766C32DD7E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E15BC33-AC90-49C0-B1C5-F766C32DD7E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E15BC33-AC90-49C0-B1C5-F766C32DD7E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39354DBF-1D1E-447F-BA08-2A3FE2DDDFDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39354DBF-1D1E-447F-BA08-2A3FE2DDDFDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39354DBF-1D1E-447F-BA08-2A3FE2DDDFDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39354DBF-1D1E-447F-BA08-2A3FE2DDDFDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,6 +119,8 @@ Global
 		{FEEEC7F5-FCEE-42BD-AD20-3C068A40D62C} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 		{F199EC7A-8EE9-4B50-A0A4-6128F6AE1ED4} = {1EA90917-ED8B-466B-92C3-121D61EB66CB}
 		{4E15BC33-AC90-49C0-B1C5-F766C32DD7E4} = {F0AD1B97-BB3A-4A93-8A56-EB3BF8D6510E}
+		{A21AD14E-4C00-4928-9088-C9E8849F5D7C} = {754D03CE-31C2-4987-9EB2-26638A5D4EC7}
+		{39354DBF-1D1E-447F-BA08-2A3FE2DDDFDC} = {A21AD14E-4C00-4928-9088-C9E8849F5D7C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {27B913A9-389E-47EC-BBFF-1E6BEDD1A9F8}

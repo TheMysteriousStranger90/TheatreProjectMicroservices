@@ -21,7 +21,7 @@ public class OrderService : IOrderService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.OrderAPIBase}/api/order/GetOrders?userId={userId}",
+            Url = $"{Const.ServerAPIBase}/api/order/GetOrders?userId={userId}",
             AccessToken = token
         });
     }
@@ -31,7 +31,7 @@ public class OrderService : IOrderService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.OrderAPIBase}/api/order/GetOrder/{orderId}",
+            Url = $"{Const.ServerAPIBase}/api/order/GetOrder/{orderId}",
             AccessToken = token
         });
     }
@@ -42,7 +42,7 @@ public class OrderService : IOrderService
         {
             ApiType = ApiType.POST,
             Data = cartDto,
-            Url = $"{Const.OrderAPIBase}/api/order/CreateOrder",
+            Url = $"{Const.ServerAPIBase}/api/order/CreateOrder",
             AccessToken = token
         });
     }
@@ -53,7 +53,7 @@ public class OrderService : IOrderService
         {
             ApiType = ApiType.POST,
             Data = stripeRequestDto,
-            Url = $"{Const.OrderAPIBase}/api/order/CreatePaymentSession",
+            Url = $"{Const.ServerAPIBase}/api/order/CreatePaymentSession",
             AccessToken = token
         });
     }
@@ -63,7 +63,7 @@ public class OrderService : IOrderService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.POST,
-            Url = $"{Const.OrderAPIBase}/api/order/ValidatePayment/{orderId}",
+            Url = $"{Const.ServerAPIBase}/api/order/ValidatePayment/{orderId}",
             AccessToken = token
         });
     }
@@ -74,7 +74,7 @@ public class OrderService : IOrderService
         {
             ApiType = ApiType.POST,
             Data = newStatus,
-            Url = $"{Const.OrderAPIBase}/api/order/UpdateOrderStatus/{orderId}",
+            Url = $"{Const.ServerAPIBase}/api/order/UpdateOrderStatus/{orderId}",
             AccessToken = token
         });
     }

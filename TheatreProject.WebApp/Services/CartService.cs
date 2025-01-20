@@ -21,7 +21,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/GetCart/{userId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/GetCart/{userId}",
             AccessToken = token
         });
     }
@@ -32,7 +32,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.POST,
             Data = cartDto,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/AddCart",
+            Url = $"{Const.ServerAPIBase}/api/cart/AddCart",
             AccessToken = token
         });
     }
@@ -43,7 +43,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.PUT,
             Data = cartDto,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/UpdateCart",
+            Url = $"{Const.ServerAPIBase}/api/cart/UpdateCart",
             AccessToken = token
         });
     }
@@ -54,7 +54,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.DELETE,
             Data = cartId,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/RemoveCart",
+            Url = $"{Const.ServerAPIBase}/api/cart/RemoveCart",
             AccessToken = token
         });
     }
@@ -64,7 +64,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.DELETE,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/ClearCart/{userId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/ClearCart/{userId}",
             AccessToken = token
         });
     }
@@ -75,7 +75,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.POST,
             Data = cartDto,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/ApplyCoupon",
+            Url = $"{Const.ServerAPIBase}/api/cart/ApplyCoupon",
             AccessToken = token
         });
     }
@@ -86,20 +86,17 @@ public class CartService : ICartService
         {
             ApiType = ApiType.POST,
             Data = userId,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/RemoveCoupon",
+            Url = $"{Const.ServerAPIBase}/api/cart/RemoveCoupon",
             AccessToken = token
         });
     }
-    
-    
-    
     
     public async Task<T> ValidateCartAsync<T>(string userId, string token = null)
     {
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/ValidateCart?userId={userId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/ValidateCart?userId={userId}",
             AccessToken = token
         });
     }
@@ -110,7 +107,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.PUT,
             Data = quantity,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/UpdateQuantity/{cartDetailId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/UpdateQuantity/{cartDetailId}",
             AccessToken = token
         });
     }
@@ -120,7 +117,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/ValidateSeats?performanceId={performanceId}&seats={seats}",
+            Url = $"{Const.ServerAPIBase}/api/cart/ValidateSeats?performanceId={performanceId}&seats={seats}",
             AccessToken = token
         });
     }
@@ -130,7 +127,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/CalculateTotal/{userId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/CalculateTotal/{userId}",
             AccessToken = token
         });
     }
@@ -140,7 +137,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/Status/{userId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/Status/{userId}",
             AccessToken = token
         });
     }
@@ -150,7 +147,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.POST,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/SaveForLater/{userId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/SaveForLater/{userId}",
             AccessToken = token
         });
     }
@@ -160,7 +157,7 @@ public class CartService : ICartService
         return await _baseService.SendAsync<T>(new RequestDto
         {
             ApiType = ApiType.GET,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/Detail/{cartDetailId}",
+            Url = $"{Const.ServerAPIBase}/api/cart/Detail/{cartDetailId}",
             AccessToken = token
         });
     }
@@ -171,7 +168,7 @@ public class CartService : ICartService
         {
             ApiType = ApiType.POST,
             Data = cartDto,
-            Url = $"{Const.ShoppingCartAPIBase}/api/cart/ValidateCouponForCart",
+            Url = $"{Const.ServerAPIBase}/api/cart/ValidateCouponForCart",
             AccessToken = token
         });
     }

@@ -14,11 +14,15 @@ public static class ApplicationServiceExtensions
         services.AddHttpClient<IOrderService, OrderService>();
         services.AddHttpClient<IEmailService, EmailService>();
         
+        /*
         Const.PerformanceAPIBase = configuration["ServiceUrls:PerformanceAPI"];
         Const.ShoppingCartAPIBase = configuration["ServiceUrls:ShoppingCartAPI"];
         Const.CouponAPIBase = configuration["ServiceUrls:CouponAPI"];
         Const.OrderAPIBase = configuration["ServiceUrls:OrderAPI"];
         Const.EmailAPIBase = configuration["ServiceUrls:EmailAPI"];
+        */
+        
+        Const.ServerAPIBase = configuration["ServiceUrls:ServerAPI"];
         
         services.AddScoped<IBaseService, BaseService>();
         services.AddScoped<IPerformanceService, PerformanceService>();
