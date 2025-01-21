@@ -31,6 +31,18 @@ The solution consists of the following microservices:
 ![Image 12](Screenshots/Screen12.png)
 ![Image 13](Screenshots/Screen13.png)
 ![Image 14](Screenshots/Screen14.png)
+![Image 15](Screenshots/Screen15.png)
+![Image 16](Screenshots/Screen16.png)
+![Image 17](Screenshots/Screen17.png)
+![Image 18](Screenshots/Screen18.png)
+![Image 19](Screenshots/Screen19.png)
+![Image 20](Screenshots/Screen20.png)
+![Image 21](Screenshots/Screen21.png)
+![Image 22](Screenshots/Screen22.png)
+![Image 23](Screenshots/Screen23.png)
+![Image 24](Screenshots/Screen24.png)
+![Image 25](Screenshots/Screen25.png)
+![Image 26](Screenshots/Screen26.png)
 
 ## Technologies
 

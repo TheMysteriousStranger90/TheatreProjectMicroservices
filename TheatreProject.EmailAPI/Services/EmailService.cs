@@ -80,8 +80,8 @@ public class EmailService : IEmailService
                         <th>Performance</th>
                         <th>Seats</th>
                         <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Subtotal</th>
+                        <th>Original Price (Without Discount)</th>
+                        <th>Original Subtotal (Without Discount)</th>
                     </tr>
                 </thead>
                 <tbody>

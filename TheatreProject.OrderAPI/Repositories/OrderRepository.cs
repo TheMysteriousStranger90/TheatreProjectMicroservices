@@ -67,17 +67,18 @@ public class OrderRepository : IOrderRepository
             orderHeaderDto.CartTotalPerformances = cartDto.CartDetails?.Count() ?? 0;
             orderHeaderDto.PaymentStatus = false;
             orderHeaderDto.Status = OrderStatus.Pending;
-            orderHeaderDto.FirstName = cartDto.CartHeader.Name;
             orderHeaderDto.Email = cartDto.CartHeader.Email;
             orderHeaderDto.Phone = cartDto.CartHeader.Phone;
-            orderHeaderDto.GrandTotal = Math.Round(cartDto.CartDetails?.Sum(d => d.SubTotal) ?? 0, 2);
+            orderHeaderDto.GrandTotal = cartDto.CartHeader.GrandTotal;
+            orderHeaderDto.DiscountTotal = cartDto.CartHeader.DiscountTotal;
+            orderHeaderDto.CouponCode = cartDto.CartHeader.CouponCode;
 
             var orderDetails = cartDto.CartDetails.Select(cd =>
             {
                 var detail = _mapper.Map<OrderDetails>(cd);
                 detail.Id = Guid.NewGuid();
                 detail.OrderHeaderId = orderHeaderDto.Id;
-                detail.PerformanceName = cd.Performance?.Name ?? cd.Performance.Name ?? "Theatre Performance";
+                detail.PerformanceName = cd.Performance?.Name ?? "Theatre Performance";
                 return detail;
             });
 
@@ -110,59 +111,65 @@ public class OrderRepository : IOrderRepository
             };
 
             var customer = await customerService.CreateAsync(customerOptions);
-            
-            
-            var options = new SessionCreateOptions
+
+        var options = new SessionCreateOptions
+        {
+            Customer = customer.Id,
+            PaymentMethodTypes = new List<string> { "card" },
+            LineItems = new List<SessionLineItemOptions>(),
+            Mode = "payment",
+            SuccessUrl = stripeRequestDto.ApprovedUrl,
+            CancelUrl = stripeRequestDto.CancelUrl,
+            PaymentMethodOptions = new SessionPaymentMethodOptionsOptions
             {
-                Customer = customer.Id,
-                PaymentMethodTypes = new List<string> { "card" },
-                LineItems = new List<SessionLineItemOptions>(),
-                Mode = "payment",
-                SuccessUrl = stripeRequestDto.ApprovedUrl,
-                CancelUrl = stripeRequestDto.CancelUrl,
-                PaymentMethodOptions = new SessionPaymentMethodOptionsOptions
-                {
-                    Card = new SessionPaymentMethodOptionsCardOptions()
-                },
-            };
+                Card = new SessionPaymentMethodOptionsCardOptions()
+            },
+        };
 
-            var orderTotal = stripeRequestDto.OrderHeader.OrderDetails.Sum(item => item.SubTotal);
+        // Calculate discount ratio based on GrandTotal and original total
+        decimal originalTotal = stripeRequestDto.OrderHeader.OrderDetails.Sum(x => x.SubTotal);
+        decimal discountRatio = originalTotal > 0 
+            ? stripeRequestDto.OrderHeader.GrandTotal / originalTotal 
+            : 1;
 
-            var discountPercentage = !string.IsNullOrEmpty(stripeRequestDto.OrderHeader.CouponCode) ? 0.5 : 0;
-            var actualDiscountAmount = orderTotal * (decimal)discountPercentage;
+        _logger.LogInformation(
+            "Original Total: ${Original:F2}, Final Total: ${Final:F2}, Discount Ratio: {Ratio:F2}", 
+            originalTotal, 
+            stripeRequestDto.OrderHeader.GrandTotal, 
+            discountRatio);
 
-            stripeRequestDto.OrderHeader.DiscountTotal = actualDiscountAmount;
+        foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
+        {
+            var productName = !string.IsNullOrEmpty(item.PerformanceName)
+                ? item.PerformanceName
+                : "Theatre Ticket";
 
-            foreach (var item in stripeRequestDto.OrderHeader.OrderDetails)
+            // Apply discount ratio to individual item price
+            var discountedPrice = item.PricePerTicket * discountRatio;
+            var unitAmount = (long)(discountedPrice * 100);
+
+            _logger.LogInformation(
+                "Item: {Name}, Original Price: ${Original:F2}, Discounted Price: ${Discounted:F2}",
+                productName,
+                item.PricePerTicket,
+                discountedPrice);
+
+            var sessionLineItem = new SessionLineItemOptions
             {
-                var productName = !string.IsNullOrEmpty(item.PerformanceName)
-                    ? item.PerformanceName
-                    : "Theatre Ticket";
-
-                var originalPrice = item.PricePerTicket;
-                var discountedPrice = originalPrice * (decimal)(1 - discountPercentage);
-                var unitAmount = (long)(discountedPrice * 100);
-
-                _logger.LogInformation(
-                    "Item: {Name}, Original: ${Original:F2}, Discount: {DiscountPct}%, Final: ${Discounted:F2}",
-                    productName, originalPrice, discountPercentage * 100, discountedPrice);
-
-                var sessionLineItem = new SessionLineItemOptions
+                PriceData = new SessionLineItemPriceDataOptions
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    UnitAmount = unitAmount,
+                    Currency = "usd",
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
                     {
-                        UnitAmount = unitAmount,
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = productName,
-                            Description = $"Seat(s): {item.SeatNumbers}"
-                        }
-                    },
-                    Quantity = item.Quantity
-                };
-                options.LineItems.Add(sessionLineItem);
-            }
+                        Name = productName,
+                        Description = $"Seat(s): {item.SeatNumbers}"
+                    }
+                },
+                Quantity = item.Quantity
+            };
+            options.LineItems.Add(sessionLineItem);
+        }
 
             var service = new SessionService();
             Session session = await service.CreateAsync(options);
@@ -171,7 +178,6 @@ public class OrderRepository : IOrderRepository
             if (orderHeader != null)
             {
                 orderHeader.StripeSessionId = session.Id;
-                orderHeader.DiscountTotal = actualDiscountAmount;
                 await _db.SaveChangesAsync();
             }
 
