@@ -73,3 +73,10 @@ Bohdan Harabadzhyu
 ## License
 
 This project is licensed under the terms of the GNU General Public License v3.0 (GPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
+## YouTube Review
+<details>
+<summary>📺 Watch Video Review</summary>
+
+[![YouTube](http://i.ytimg.com/vi/P-m9FOhUYlg/hqdefault.jpg)](https://www.youtube.com/watch?v=P-m9FOhUYlg)
+</details>
